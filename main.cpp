@@ -9,7 +9,7 @@ int main() {
     bgrToGray(img, img_gray);
 
     Mat dst;
-    sharpenSpatialFilterLaplace(img, dst);
+    spatialToFrequency(img_gray, dst);
 
     namedWindow("dst", WINDOW_AUTOSIZE);
     imshow("dst", dst);

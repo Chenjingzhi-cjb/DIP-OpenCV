@@ -134,16 +134,16 @@ void sharpenSpatialFilterTemplate(Mat &src, Mat &dst, Size smooth_size, float k)
     }
 
     // 1. 获取模糊图像
-    Mat smooth_img = Mat::zeros(src.size(), src.depth());
-    GaussianBlur(src, smooth_img, smooth_size, (smooth_size.width / 6.0), (smooth_size.height / 6.0));
+    Mat smooth_image = Mat::zeros(src.size(), src.depth());
+    GaussianBlur(src, smooth_image, smooth_size, (smooth_size.width / 6.0), (smooth_size.height / 6.0));
 
     // 2. 原图像 - 模糊图像 = 模板
-    Mat template_img = Mat::zeros(src.size(), src.depth());
-    subtract(src, smooth_img, template_img);
+    Mat template_image = Mat::zeros(src.size(), src.depth());
+    subtract(src, smooth_image, template_image);
 
     // 3. 原图像 + k * 模板 = 结果图像
     Mat temp = Mat::zeros(src.size(), src.depth());
-    addWeighted(src, 1, template_img, k, 0, temp);
+    addWeighted(src, 1, template_image, k, 0, temp);
 
     temp.copyTo(dst);
 }

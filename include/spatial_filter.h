@@ -90,7 +90,7 @@ void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage = 50);
  * @param src 输入图像
  * @param dst 输出图像
  * @param ksize 高斯核的尺寸；必须为正奇数
- * @param scale 计算拉普拉斯值的比例因子；默认情况下无缩放，有关细节 #getDerivKernels
+ * @param scale 计算拉普拉斯值的比例因子；默认情况下无缩放，有关细节请参阅 #getDerivKernels
  * @param delta 偏移量
  * @param borderType 边界填充模式；默认为镜像填充，请参阅 #BorderTypes，不支持 #BORDER_WRAP
  * @return None
@@ -125,7 +125,7 @@ void sharpenSpatialFilterPrewitt();
  * @param dx X 方向导数的阶
  * @param dy Y 方向导数的阶
  * @param ksize 高斯核的尺寸；必须为正奇数
- * @param scale 计算导数值的比例因子；默认情况下无缩放，有关细节 #getDerivKernels
+ * @param scale 计算导数值的比例因子；默认情况下无缩放，有关细节请参阅 #getDerivKernels
  * @param delta 偏移量
  * @param borderType 边界填充模式；默认为镜像填充，请参阅 #BorderTypes，不支持 #BORDER_WRAP
  * @return None
@@ -142,7 +142,7 @@ void sharpenSpatialFilterSobel(Mat &src, Mat &dst, int dx, int dy, int ksize = 3
  * @param dst 输出图像
  * @param dx X 方向导数的阶
  * @param dy Y 方向导数的阶
- * @param scale 计算导数值的比例因子；默认情况下无缩放，有关细节 #getDerivKernels
+ * @param scale 计算导数值的比例因子；默认情况下无缩放，有关细节请参阅 #getDerivKernels
  * @param delta 偏移量
  * @param borderType 边界填充模式；默认为镜像填充，请参阅 #BorderTypes，不支持 #BORDER_WRAP
  * @return None
