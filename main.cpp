@@ -3,17 +3,16 @@
 
 
 int main() {
-    Mat img = imread("../image/lena.png");
+    Mat image = imread(R"(..\image\lena.png)");
 
-    Mat img_gray;
-    bgrToGray(img, img_gray);
+    Mat image_gray;
+    bgrToGray(image, image_gray);
 
-    Mat dst;
-    spatialToFrequency(img_gray, dst);
-
-    namedWindow("dst", WINDOW_AUTOSIZE);
-    imshow("dst", dst);
+    namedWindow("gray", WINDOW_AUTOSIZE);
+    imshow("gray", image_gray);
     waitKey(0);
+
+//    domainTransformDemo();
 
     return 0;
 }

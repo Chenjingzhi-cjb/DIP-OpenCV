@@ -104,10 +104,10 @@ void grayGamma(Mat &src, Mat &dst, float k, float gamma) {
         string err = R"(grayGamma(): Parameter Error! You should make sure "gamma > 0"!)";
         throw invalid_argument(err);
     }
-    
+
     // CV_8U -> [0-255]
     int upper_limit = 255;
-    
+
     double max_value = k * pow(upper_limit, gamma);
     if (max_value == 0) return;
     double d = upper_limit / max_value;

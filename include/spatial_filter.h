@@ -148,7 +148,7 @@ void sharpenSpatialFilterSobel(Mat &src, Mat &dst, int dx, int dy, int ksize = 3
  * @return None
  */
 void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale = 1, double delta = 0,
-                               int borderType = BORDER_DEFAULT);
+                                int borderType = BORDER_DEFAULT);
 
 /**
  * @brief Canny 锐化（高通）空间滤波
