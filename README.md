@@ -65,10 +65,20 @@ void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double thr
 ```cpp
 void dftShift(Mat &image);  // 傅里叶图像象限变换
 
-void spatialToFrequency(Mat &src, Mat &dst_complex, Mat &dst_magnitude);  // 图像空间域转频率域
+void spatialToFrequency(Mat &src, Mat &dst_complex);  // 图像空间域转频率域
 
-void frequencyToSpatial(Mat &src, Mat &dst);  // 图像频率域转空间域
+void splitFrequencyMagnitude(Mat &src_complex, Mat &dst_magnitude);  // 从频率域复数图像中分离出频率域实部幅值图像
+
+void frequencyToSpatial(Mat &src_complex, Mat &dst);  // 图像频率域转空间域
 
 void domainTransformDemo();  // 空间域图像与频率域图像的转换演示
+
+Mat idealLowFrequencyKernel(Size size, float sigma);  // 理想低通频率滤波核函数
+
+Mat gaussLowFrequencyKernel(Size size, float sigma);  // 高斯低通频率滤波核函数
+
+Mat bwLowFrequencyKernel(Size size, float sigma, int order);  // 巴特沃斯低通频率滤波核函数
+
+void smoothFrequencyFilter(Mat &src, Mat &dst, Mat &kernel);  // 平滑（低通）频率滤波
 ```
 

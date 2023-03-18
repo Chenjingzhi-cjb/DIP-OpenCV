@@ -21,7 +21,7 @@ void dftShift(Mat &image) {
     tmp.copyTo(q2);
 }
 
-void spatialToFrequency(Mat &src, Mat &dst_complex, Mat &dst_magnitude) {
+void spatialToFrequency(Mat &src, Mat &dst_complex) {
     if (src.empty()) {
         throw invalid_argument("spatialToFrequency(): Input image is empty!");
     }
@@ -44,9 +44,18 @@ void spatialToFrequency(Mat &src, Mat &dst_complex, Mat &dst_magnitude) {
     // 重新排列傅里叶图像的象限，使原点位于图像中心
     dftShift(complex_image);
 
+    complex_image.copyTo(dst_complex);
+}
+
+void splitFrequencyMagnitude(Mat &src_complex, Mat &dst_magnitude) {
+    if (src_complex.empty()) {
+        throw invalid_argument("splitFrequencyMagnitude(): Input image is empty!");
+    }
+
     // 从复数输出矩阵中分离出实部（即幅值）
+    Mat planes[2];
     Mat magnitude_image;
-    split(complex_image, planes);
+    split(src_complex, planes);
     magnitude(planes[0], planes[1], magnitude_image);
 
     // 对实部进行对数变换，即 compute log(1 + sqrt(Re(DFT(src))**2 + Im(DFT(src))**2))
@@ -59,16 +68,21 @@ void spatialToFrequency(Mat &src, Mat &dst_complex, Mat &dst_magnitude) {
     // 对幅值进行归一化操作，因为 type 为 float，所以用 imshow() 时会将像素值乘以 255
     normalize(magnitude_image, magnitude_image, 0, 1, NORM_MINMAX);
 
-    complex_image.copyTo(dst_complex);
     magnitude_image.copyTo(dst_magnitude);
 }
 
-void frequencyToSpatial(Mat &src, Mat &dst) {
-    if (src.empty()) {
+void frequencyToSpatial(Mat &src_complex, Mat &dst) {
+    if (src_complex.empty()) {
         throw invalid_argument("frequencyToSpatial(): Input image is empty!");
     }
 
-    Mat dft_complex = src.clone();
+    // 为确保输出图像与原图像的尺寸一致，应初始化并传入正确尺寸的 dst 对象，
+    // 如：Mat dst = Mat::zeros(src.size(), src.depth());
+    if (dst.empty()) {
+        throw invalid_argument("frequencyToSpatial(): Dst size unknown!");
+    }
+
+    Mat dft_complex = src_complex.clone();
 
     // 重新排列傅里叶图像的象限，使原点位于图像四角
     dftShift(dft_complex);
@@ -90,7 +104,8 @@ void domainTransformDemo() {
     Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
 
     Mat dst_complex, dst_magnitude;
-    spatialToFrequency(image_gray, dst_complex, dst_magnitude);
+    spatialToFrequency(image_gray, dst_complex);
+    splitFrequencyMagnitude(dst_complex, dst_magnitude);
 
     Mat dst_idft = Mat::zeros(image_gray.size(), image_gray.depth());
     frequencyToSpatial(dst_complex, dst_idft);
@@ -102,4 +117,96 @@ void domainTransformDemo() {
     namedWindow("idft", WINDOW_AUTOSIZE);
     imshow("idft", dst_idft);
     waitKey(0);
+}
+
+Mat idealLowFrequencyKernel(Size size, float sigma) {
+    Mat kernel(size, CV_32FC1);
+
+    /* 传递函数：
+       H(u, v) = 1, D(u, v) <= D0
+                 0, D(u, v) >  D0
+       D(u, v) = [(u - P/2)^2 + (v - Q/2)^2]^(1/2)
+    */
+    for (int i = 0; i < size.height; i++) {
+        for (int j = 0; j < size.width; j++) {
+            double d = sqrt(
+                    pow((float) i - (float) size.height / 2, 2) + pow((float) j - (float) size.width / 2, 2));
+            if (d <= sigma) {
+                kernel.at<float>(i, j) = 1;
+            } else {
+                kernel.at<float>(i, j) = 0;
+            }
+        }
+    }
+
+    return kernel;
+}
+
+Mat gaussLowFrequencyKernel(Size size, float sigma) {
+    cv::Mat kernel(size, CV_32FC1);
+
+    /* 传递函数：
+       H(u, v) = e^(-(D^2) / (2 * D0^2))
+       D(u, v) = [(u - P/2)^2 + (v - Q/2)^2]^(1/2)
+    */
+    for (int i = 0; i < size.height; i++) {
+        for (int j = 0; j < size.width; j++) {
+            double d = sqrt(
+                    pow((float) i - (float) size.height / 2, 2) + pow((float) j - (float) size.width / 2, 2));
+            double h = exp(-1 * pow(d, 2) / (2 * pow(sigma, 2)));
+            kernel.at<float>(i, j) = (float) h;
+        }
+    }
+
+    return kernel;
+}
+
+Mat bwLowFrequencyKernel(Size size, float sigma, int order) {
+    cv::Mat kernel(size, CV_32FC1);
+
+    /* 传递函数：
+       H(u, v) = 1 / (1 + (D / D0)^(2n))
+       D(u, v) = [(u - P/2)^2 + (v - Q/2)^2]^(1/2)
+    */
+    for (int i = 0; i < size.height; i++) {
+        for (int j = 0; j < size.width; j++) {
+            double d = sqrt(
+                    pow((float) i - (float) size.height / 2, 2) + pow((float) j - (float) size.width / 2, 2));
+            double h = 1 / (1 + pow(d / sigma, 2 * order));
+            kernel.at<float>(i, j) = (float) h;
+        }
+    }
+
+    return kernel;
+}
+
+void smoothFrequencyFilter(Mat &src, Mat &dst, Mat &kernel) {
+    if (src.empty()) {
+        throw invalid_argument("smoothFrequencyFilter(): Input image is empty!");
+    }
+
+    // 转到频率域
+    Mat src_frequency;
+    spatialToFrequency(src, src_frequency);
+
+    // 分离
+    Mat planes[2];
+    split(src_frequency, planes);
+
+    // 处理
+    Mat dst_real, dst_imaginary;
+    multiply(planes[0], kernel, dst_real);
+    multiply(planes[1], kernel, dst_imaginary);
+
+    // 合并
+    Mat dst_frequency;
+    planes[0] = dst_real;
+    planes[1] = dst_imaginary;
+    merge(planes, 2, dst_frequency);
+
+    // 转到空间域
+    Mat result = Mat::zeros(src.size(), src.depth());
+    frequencyToSpatial(dst_frequency, result);
+
+    result.copyTo(dst);
 }
