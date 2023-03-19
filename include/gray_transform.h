@@ -26,7 +26,7 @@ void bgrToGray(Mat &src, Mat &dst);
 /**
  * @brief 灰度线性缩放，缩放至 [0-255]
  *
- * 调用 Mat::convertTo()
+ * 调用 Mat::normalize()
  *
  * @param src 输入图像；注意 depth 应为 CV_8U
  * @param dst 输出图像

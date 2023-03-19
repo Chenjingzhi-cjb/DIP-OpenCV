@@ -6,11 +6,7 @@ void bgrToGray(Mat &src, Mat &dst) {
         throw invalid_argument("bgrToGray(): Input image is empty!");
     }
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
-    cvtColor(src, temp, COLOR_BGR2GRAY);
-
-    temp.copyTo(dst);
+    cvtColor(src, dst, COLOR_BGR2GRAY);
 }
 
 void grayLinearScaleCV_8U(Mat &src, Mat &dst) {
@@ -18,19 +14,7 @@ void grayLinearScaleCV_8U(Mat &src, Mat &dst) {
         throw invalid_argument("grayLinearScaleCV_8U(): Input image is empty!");
     }
 
-    // CV_8U -> [0-255]
-    int upper_limit = 255;
-
-    double min_value, max_value;
-    Point min_idx, max_idx;
-    minMaxLoc(src, &min_value, &max_value, &min_idx, &max_idx);
-    if ((max_value - min_value) == 0) return;
-    double k = upper_limit / (max_value - min_value);
-
-    Mat temp = Mat::zeros(src.size(), src.depth());
-    src.convertTo(temp, src.depth(), k, -1 * k * min_value);
-
-    temp.copyTo(dst);
+    normalize(src, dst, 0, 255, NORM_MINMAX, CV_8U);
 }
 
 void grayInvert(Mat &src, Mat &dst) {
@@ -38,13 +22,7 @@ void grayInvert(Mat &src, Mat &dst) {
         throw invalid_argument("grayInvert(): Input image is empty!");
     }
 
-    // CV_8U -> [0-255]
-    int upper_limit = 255;
-
-    Mat temp = Mat::zeros(src.size(), src.depth());
-    src.convertTo(temp, src.depth(), -1, upper_limit);
-
-    temp.copyTo(dst);
+    src.convertTo(dst, CV_8U, -1, 255);
 }
 
 void grayLog(Mat &src, Mat &dst, float k) {

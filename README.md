@@ -73,12 +73,22 @@ void frequencyToSpatial(Mat &src_complex, Mat &dst);  // 图像频率域转空�
 
 void domainTransformDemo();  // 空间域图像与频率域图像的转换演示
 
-Mat idealLowFrequencyKernel(Size size, float sigma);  // 理想低通频率滤波核函数
+Mat idealLowPassFreqKernel(Size size, float sigma);  // 理想低通频率滤波核函数，该核有振铃效应
 
-Mat gaussLowFrequencyKernel(Size size, float sigma);  // 高斯低通频率滤波核函数
+Mat gaussLowPassFreqKernel(Size size, float sigma);  // 高斯低通频率滤波核函数
 
-Mat bwLowFrequencyKernel(Size size, float sigma, int order);  // 巴特沃斯低通频率滤波核函数
+Mat bwLowPassFreqKernel(Size size, float sigma, int order);  // 巴特沃斯低通频率滤波核函数
 
-void smoothFrequencyFilter(Mat &src, Mat &dst, Mat &kernel);  // 平滑（低通）频率滤波
+Mat idealHighPassFreqKernel(Size size, float sigma);  // 理想高通频率滤波核函数，该核有振铃效应
+
+Mat gaussHighPassFreqKernel(Size size, float sigma);  // 高斯高通频率滤波核函数
+
+Mat bwHighPassFreqKernel(Size size, float sigma, int order);  // 巴特沃斯高通频率滤波核函数
+
+void frequencyFilter(Mat &src, Mat &dst, Mat &kernel);  // 频率域滤波
+
+Mat laplaceFreqKernel(Size size);  // 拉普拉斯频率滤波核函数
+
+void laplaceFreqImageEnhance(Mat &src, Mat &dst);  // 拉普拉斯频率域图像增强
 ```
 
