@@ -73,26 +73,32 @@ void frequencyToSpatial(Mat &src_complex, Mat &dst);  // 图像频率域转空�
 
 void domainTransformDemo();  // 空间域图像与频率域图像的转换演示
 
-Mat idealLowPassFreqKernel(Size size, float sigma);  // 理想低通频率滤波核函数，该核有振铃效应
+Mat idealLowPassFreqKernel(Size size, int sigma);  // 理想低通频率滤波核函数，该核有振铃效应
 
-Mat gaussLowPassFreqKernel(Size size, float sigma);  // 高斯低通频率滤波核函数
+Mat gaussLowPassFreqKernel(Size size, int sigma);  // 高斯低通频率滤波核函数
 
-Mat bwLowPassFreqKernel(Size size, float sigma, int order);  // 巴特沃斯低通频率滤波核函数
+Mat bwLowPassFreqKernel(Size size, int sigma, int order);  // 巴特沃斯低通频率滤波核函数
 
-Mat idealHighPassFreqKernel(Size size, float sigma);  // 理想高通频率滤波核函数，该核有振铃效应
+Mat idealHighPassFreqKernel(Size size, int sigma);  // 理想高通频率滤波核函数，该核有振铃效应
 
-Mat gaussHighPassFreqKernel(Size size, float sigma);  // 高斯高通频率滤波核函数
+Mat gaussHighPassFreqKernel(Size size, int sigma);  // 高斯高通频率滤波核函数
 
-Mat bwHighPassFreqKernel(Size size, float sigma, int order);  // 巴特沃斯高通频率滤波核函数
+Mat bwHighPassFreqKernel(Size size, int sigma, int order);  // 巴特沃斯高通频率滤波核函数
 
-Mat highFreqEmphasisKernel(Size size, float sigma, float k1 = 1, float k2 = 1);  // 高频增强滤波核函数
+Mat highFreqEmphasisKernel(Size size, int sigma, float k1 = 1, float k2 = 1);  // 高频增强滤波核函数
 
-Mat homomorphicEmphasisKernel(Size size, float sigma, float gamma_h, float gamma_l, float c);  // 同态增强滤波核函数
+Mat homomorphicEmphasisKernel(Size size, int sigma, float gamma_h, float gamma_l, int c);  // 同态增强滤波核函数
+
+Mat idealBandRejectFreqKernel(Size size, int C0, int width);  // 理想带阻频率滤波核函数
+
+Mat gaussBandRejectFreqKernel(Size size, int C0, int width);  // 高斯带阻频率滤波核函数
+
+Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order);  // 巴特沃斯带阻频率滤波核函数
 
 void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);  // 频率域滤波
 
 Mat laplaceFreqKernel(Size size);  // 拉普拉斯频率滤波核函数
 
-void freqSharpenLaplace(Mat &src, Mat &dst);  // 拉普拉斯频率域图像增强
+void freqSharpenLaplace(Mat &src, Mat &dst);  // 拉普拉斯频率域锐化
 ```
 

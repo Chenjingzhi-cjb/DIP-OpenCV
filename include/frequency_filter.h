@@ -11,16 +11,6 @@ using namespace std;
 using namespace cv;
 
 
-enum FreqKernel {
-    idealLowPass,
-    gaussLowPass,
-    butterworthLowPass,
-    idealHighPass,
-    gaussHighPass,
-    butterworthHighPass
-};
-
-
 /**
  * @brief 傅里叶图像象限变换
  *
@@ -76,7 +66,7 @@ void domainTransformDemo();
  * @param sigma 即 D0，为截止频率；D0 越小，平滑程度越大；D0 越大，平滑程度越小
  * @return Ideal low frequency kernel
  */
-Mat idealLowPassFreqKernel(Size size, float sigma);
+Mat idealLowPassFreqKernel(Size size, int sigma);
 
 /**
  * @brief 高斯低通频率滤波核函数
@@ -85,7 +75,7 @@ Mat idealLowPassFreqKernel(Size size, float sigma);
  * @param sigma 即 D0，为截止频率；D0 越小，平滑程度越大；D0 越大，平滑程度越小
  * @return Gaussian low frequency kernel
  */
-Mat gaussLowPassFreqKernel(Size size, float sigma);
+Mat gaussLowPassFreqKernel(Size size, int sigma);
 
 /**
  * @brief 巴特沃斯低通频率滤波核函数
@@ -95,7 +85,7 @@ Mat gaussLowPassFreqKernel(Size size, float sigma);
  * @param order 即 n，为阶数；n 越大，越接近理想滤波；n 越小，越接近高斯滤波
  * @return Butterworth low frequency kernel
  */
-Mat bwLowPassFreqKernel(Size size, float sigma, int order);
+Mat bwLowPassFreqKernel(Size size, int sigma, int order);
 
 /**
  * @brief 理想高通频率滤波核函数，该核有振铃效应
@@ -104,7 +94,7 @@ Mat bwLowPassFreqKernel(Size size, float sigma, int order);
  * @param sigma 即 D0，为截止频率；D0 越小，锐化程度越小；D0 越大，锐化程度越大
  * @return Ideal high pass frequency kernel
  */
-Mat idealHighPassFreqKernel(Size size, float sigma);
+Mat idealHighPassFreqKernel(Size size, int sigma);
 
 /**
  * @brief 高斯高通频率滤波核函数
@@ -113,7 +103,7 @@ Mat idealHighPassFreqKernel(Size size, float sigma);
  * @param sigma 即 D0，为截止频率；D0 越小，锐化程度越小；D0 越大，锐化程度越大
  * @return Gaussian high pass frequency kernel
  */
-Mat gaussHighPassFreqKernel(Size size, float sigma);
+Mat gaussHighPassFreqKernel(Size size, int sigma);
 
 /**
  * @brief 巴特沃斯高通频率滤波核函数
@@ -123,7 +113,7 @@ Mat gaussHighPassFreqKernel(Size size, float sigma);
  * @param order 即 n，为阶数；n 越大，越接近理想滤波；n 越小，越接近高斯滤波
  * @return Butterworth high pass frequency kernel
  */
-Mat bwHighPassFreqKernel(Size size, float sigma, int order);
+Mat bwHighPassFreqKernel(Size size, int sigma, int order);
 
 /**
  * @brief 高频增强滤波核函数
@@ -134,7 +124,7 @@ Mat bwHighPassFreqKernel(Size size, float sigma, int order);
  * @param k2 高频贡献率
  * @return High frequency emphasis kernel
  */
-Mat highFreqEmphasisKernel(Size size, float sigma, float k1 = 1, float k2 = 1);
+Mat highFreqEmphasisKernel(Size size, int sigma, float k1 = 1, float k2 = 1);
 
 /**
  * @brief 同态增强滤波核函数
@@ -146,7 +136,38 @@ Mat highFreqEmphasisKernel(Size size, float sigma, float k1 = 1, float k2 = 1);
  * @param c 传递函数偏斜度常数；类似于巴特沃斯的阶数
  * @return Homomorphic emphasis kernel
  */
-Mat homomorphicEmphasisKernel(Size size, float sigma, float gamma_h, float gamma_l, float c);
+Mat homomorphicEmphasisKernel(Size size, int sigma, float gamma_h, float gamma_l, int c);
+
+/**
+ * @brief 理想带阻频率滤波核函数
+ *
+ * @param size 滤波核尺寸；应与处理图像的尺寸一致，src.size()
+ * @param c0 频带中心
+ * @param width 频带宽度
+ * @return Ideal band reject frequency kernel
+ */
+Mat idealBandRejectFreqKernel(Size size, int C0, int width);
+
+/**
+ * @brief 高斯带阻频率滤波核函数
+ *
+ * @param size 滤波核尺寸；应与处理图像的尺寸一致，src.size()
+ * @param c0 频带中心
+ * @param width 频带宽度
+ * @return Gauss band reject frequency kernel
+ */
+Mat gaussBandRejectFreqKernel(Size size, int C0, int width);
+
+/**
+ * @brief 巴特沃斯带阻频率滤波核函数
+ *
+ * @param size 滤波核尺寸；应与处理图像的尺寸一致，src.size()
+ * @param c0 频带中心
+ * @param width 频带宽度
+ * @param order 即 n，为阶数；n 越大，越接近理想滤波；n 越小，越接近高斯滤波
+ * @return Butterworth band reject frequency kernel
+ */
+Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order);
 
 /**
  * @brief 频率域滤波
