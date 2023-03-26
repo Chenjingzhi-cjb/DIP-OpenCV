@@ -3,13 +3,14 @@
 
 
 int main() {
-    Mat image = imread(R"(..\image\lena.png)");
+    Mat image = imread(R"(..\image\chestXray.tif)");
 
     Mat image_gray;
     bgrToGray(image, image_gray);
 
     Mat dst;
-    laplaceFreqImageEnhance(image_gray, dst);
+    Mat kernel = highFreqEmphasisKernel(image_gray.size(), 30);
+    frequencyFilter(image_gray, dst, kernel);
 
     namedWindow("gray", WINDOW_AUTOSIZE);
     imshow("gray", image_gray);

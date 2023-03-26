@@ -91,20 +91,6 @@ void frequencyToSpatial(Mat &src_complex, Mat &dst) {
     Mat idft_real;
     idft(dft_complex, idft_real, DFT_REAL_OUTPUT);
 
-    // 将负值置为零
-    for (int i = 0; i < idft_real.rows; i++) {
-        for (int j = 0; j < idft_real.cols; j++) {
-            float m = idft_real.at<float>(i, j);
-            if (m < 0) idft_real.at<float>(i, j) = 0;
-        }
-    }
-
-    // 对幅值进行归一化操作，转换为 CV_8U 0-255
-    normalize(idft_real, idft_real, 0, 255, NORM_MINMAX, CV_8U);
-
-    // 裁剪至原尺寸
-    idft_real = idft_real(Rect(0, 0, dst.cols, dst.rows));
-
     idft_real.copyTo(dst);
 }
 
@@ -273,35 +259,96 @@ Mat bwHighPassFreqKernel(Size size, float sigma, int order) {
     return kernel;
 }
 
-void frequencyFilter(Mat &src, Mat &dst, Mat &kernel) {
+Mat highFreqEmphasisKernel(Size size, float sigma, float k1, float k2) {
+    int M = getOptimalDFTSize(size.height);
+    int N = getOptimalDFTSize(size.width);
+    Size t_size = Size(N, M);
+
+    cv::Mat kernel(t_size, CV_32FC1);
+
+    /* 传递函数：
+       H(u, v) = k1 + k2 * (1 - e^(-(D^2) / (2 * D0^2)))
+       D(u, v) = [(u - P/2)^2 + (v - Q/2)^2]^(1/2)
+    */
+    for (int i = 0; i < t_size.height; i++) {
+        for (int j = 0; j < t_size.width; j++) {
+            double d = sqrt(
+                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
+            double h = k1 + k2 * (1 - exp(-1 * pow(d, 2) / (2 * pow(sigma, 2))));
+            kernel.at<float>(i, j) = (float) (h);
+        }
+    }
+
+    return kernel;
+}
+
+Mat homomorphicEmphasisKernel(Size size, float sigma, float gamma_h, float gamma_l, float c) {
+    int M = getOptimalDFTSize(size.height);
+    int N = getOptimalDFTSize(size.width);
+    Size t_size = Size(N, M);
+
+    cv::Mat kernel(t_size, CV_32FC1);
+
+    /* 传递函数：
+       H(u, v) = (gh - gl) * (1 - e^(-c * (D^2) / (D0^2))) + gl
+       D(u, v) = [(u - P/2)^2 + (v - Q/2)^2]^(1/2)
+    */
+    for (int i = 0; i < t_size.height; i++) {
+        for (int j = 0; j < t_size.width; j++) {
+            double d = sqrt(
+                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
+            double h = (gamma_h - gamma_l) * (1 - exp(-1 * c * pow(d, 2) / pow(sigma, 2))) + gamma_l;
+            kernel.at<float>(i, j) = (float) (h);
+        }
+    }
+
+    return kernel;
+}
+
+void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative) {
     if (src.empty()) {
         throw invalid_argument("frequencyFilter(): Input image is empty!");
     }
 
     // 转到频率域
-    Mat src_frequency;
-    spatialToFrequency(src, src_frequency);
+    Mat image_frequency;
+    spatialToFrequency(src, image_frequency);
 
     // 分离
     Mat planes[2];
-    split(src_frequency, planes);
+    split(image_frequency, planes);
 
     // 处理
-    Mat dst_real, dst_imaginary;
-    multiply(planes[0], kernel, dst_real);
-    multiply(planes[1], kernel, dst_imaginary);
+    Mat image_real, image_imaginary;
+    multiply(planes[0], kernel, image_real);
+    multiply(planes[1], kernel, image_imaginary);
 
     // 合并
-    Mat dst_frequency;
-    planes[0] = dst_real;
-    planes[1] = dst_imaginary;
-    merge(planes, 2, dst_frequency);
+    planes[0] = image_real;
+    planes[1] = image_imaginary;
+    merge(planes, 2, image_frequency);
 
     // 转到空间域
-    Mat result = Mat::zeros(src.size(), src.depth());
-    frequencyToSpatial(dst_frequency, result);
+    image_real = Mat::zeros(src.size(), src.depth());
+    frequencyToSpatial(image_frequency, image_real);
 
-    result.copyTo(dst);
+    // remove negative value 将负值置为零
+    if (rm_negative) {
+        for (int i = 0; i < image_real.rows; i++) {
+            for (int j = 0; j < image_real.cols; j++) {
+                float m = image_real.at<float>(i, j);
+                if (m < 0) image_real.at<float>(i, j) = 0;
+            }
+        }
+    }
+
+    // 对幅值进行归一化操作，转换为 CV_8U 0-255
+    normalize(image_real, image_real, 0, 255, NORM_MINMAX, CV_8U);
+
+    // 裁剪至原尺寸
+    image_real = image_real(Rect(0, 0, src.cols, src.rows));
+
+    image_real.copyTo(dst);
 }
 
 Mat laplaceFreqKernel(Size size) {
@@ -326,7 +373,11 @@ Mat laplaceFreqKernel(Size size) {
     return kernel;
 }
 
-void laplaceFreqImageEnhance(Mat &src, Mat &dst) {
+void freqSharpenLaplace(Mat &src, Mat &dst) {
+    if (src.empty()) {
+        throw invalid_argument("freqSharpenLaplace(): Input image is empty!");
+    }
+
     // 拉普拉斯锐化
     Mat temp;
     Mat kernel = laplaceFreqKernel(src.size());

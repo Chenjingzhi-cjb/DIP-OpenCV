@@ -85,10 +85,14 @@ Mat gaussHighPassFreqKernel(Size size, float sigma);  // 高斯高通频率滤�
 
 Mat bwHighPassFreqKernel(Size size, float sigma, int order);  // 巴特沃斯高通频率滤波核函数
 
-void frequencyFilter(Mat &src, Mat &dst, Mat &kernel);  // 频率域滤波
+Mat highFreqEmphasisKernel(Size size, float sigma, float k1 = 1, float k2 = 1);  // 高频增强滤波核函数
+
+Mat homomorphicEmphasisKernel(Size size, float sigma, float gamma_h, float gamma_l, float c);  // 同态增强滤波核函数
+
+void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);  // 频率域滤波
 
 Mat laplaceFreqKernel(Size size);  // 拉普拉斯频率滤波核函数
 
-void laplaceFreqImageEnhance(Mat &src, Mat &dst);  // 拉普拉斯频率域图像增强
+void freqSharpenLaplace(Mat &src, Mat &dst);  // 拉普拉斯频率域图像增强
 ```
 
