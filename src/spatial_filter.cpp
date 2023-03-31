@@ -24,11 +24,7 @@ void linearSpatialFilter(Mat &src, Mat &dst, Mat &kernel) {
     cout << "python\n" << format(kernel, Formatter::FMT_PYTHON) << endl;
      */
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
-    filter2D(src, temp, src.depth(), kernel);
-
-    temp.copyTo(dst);
+    filter2D(src, dst, src.depth(), kernel);
 }
 
 void smoothSpatialFilterBox(Mat &src, Mat &dst, Size ksize, Point anchor, bool normalize, int borderType) {
@@ -36,11 +32,7 @@ void smoothSpatialFilterBox(Mat &src, Mat &dst, Size ksize, Point anchor, bool n
         throw invalid_argument("smoothSpatialFilterBox(): Input image is empty!");
     }
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
-    boxFilter(src, temp, src.depth(), ksize, anchor, normalize, borderType);
-
-    temp.copyTo(dst);
+    boxFilter(src, dst, src.depth(), ksize, anchor, normalize, borderType);
 }
 
 void smoothSpatialFilterGauss(Mat &src, Mat &dst, Size ksize, double sigmaX, double sigmaY, int borderType) {
@@ -48,11 +40,7 @@ void smoothSpatialFilterGauss(Mat &src, Mat &dst, Size ksize, double sigmaX, dou
         throw invalid_argument("smoothSpatialFilterGauss(): Input image is empty!");
     }
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
-    GaussianBlur(src, temp, ksize, sigmaX, sigmaY, borderType);
-
-    temp.copyTo(dst);
+    GaussianBlur(src, dst, ksize, sigmaX, sigmaY, borderType);
 }
 
 void shadingCorrection(Mat &src, Mat &dst, float k1, float k2) {  // TODO:
@@ -100,15 +88,11 @@ void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage) {
         throw invalid_argument(err);
     }
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
     if (percentage == 50) {
-        medianBlur(src, temp, ksize);
+        medianBlur(src, dst, ksize);
     } else {  // percentage != 50 TODO:
         cout << "orderStatisticsFilter(): Undeveloped, please look forward to! (Just too lazy to develop!)" << endl;
     }
-
-    temp.copyTo(dst);
 }
 
 void sharpenSpatialFilterLaplace(Mat &src, Mat &dst, int ksize, double scale, double delta, int borderType) {
@@ -116,11 +100,7 @@ void sharpenSpatialFilterLaplace(Mat &src, Mat &dst, int ksize, double scale, do
         throw invalid_argument("sharpenSpatialFilterLaplace(): Input image is empty!");
     }
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
-    Laplacian(src, temp, src.depth(), ksize, scale, delta, borderType);
-
-    temp.copyTo(dst);
+    Laplacian(src, dst, src.depth(), ksize, scale, delta, borderType);
 }
 
 void sharpenSpatialFilterTemplate(Mat &src, Mat &dst, Size smooth_size, float k) {
@@ -142,10 +122,10 @@ void sharpenSpatialFilterTemplate(Mat &src, Mat &dst, Size smooth_size, float k)
     subtract(src, smooth_image, template_image);
 
     // 3. 原图像 + k * 模板 = 结果图像
-    Mat temp = Mat::zeros(src.size(), src.depth());
-    addWeighted(src, 1, template_image, k, 0, temp);
+    Mat result_image = Mat::zeros(src.size(), src.depth());
+    addWeighted(src, 1, template_image, k, 0, result_image);
 
-    temp.copyTo(dst);
+    result_image.copyTo(dst);
 }
 
 void sharpenSpatialFilterSobel(Mat &src, Mat &dst, int dx, int dy, int ksize, double scale, double delta,
@@ -154,11 +134,7 @@ void sharpenSpatialFilterSobel(Mat &src, Mat &dst, int dx, int dy, int ksize, do
         throw invalid_argument("sharpenSpatialFilterSobel(): Input image is empty!");
     }
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
-    Sobel(src, temp, src.depth(), dx, dy, ksize, scale, delta, borderType);
-
-    temp.copyTo(dst);
+    Sobel(src, dst, src.depth(), dx, dy, ksize, scale, delta, borderType);
 }
 
 void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale, double delta, int borderType) {
@@ -166,11 +142,7 @@ void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale
         throw invalid_argument("sharpenSpatialFilterScharr(): Input image is empty!");
     }
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
-    Scharr(src, temp, src.depth(), dx, dy, scale, delta, borderType);
-
-    temp.copyTo(dst);
+    Scharr(src, dst, src.depth(), dx, dy, scale, delta, borderType);
 }
 
 void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double threshold2, int apertureSize,
@@ -179,10 +151,6 @@ void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double thr
         throw invalid_argument("sharpenSpatialFilterCanny(): Input image is empty!");
     }
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
-
-    Canny(src, temp, threshold1, threshold2, apertureSize, L2gradient);
-
-    temp.copyTo(dst);
+    Canny(src, dst, threshold1, threshold2, apertureSize, L2gradient);
 }
 

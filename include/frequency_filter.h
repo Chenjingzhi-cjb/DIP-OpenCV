@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <cmath>
 #include "opencv2/opencv.hpp"
+#include <cmath>
 
 
 using namespace std;
@@ -34,7 +34,7 @@ void spatialToFrequency(Mat &src, Mat &dst_complex);
  * @brief 从频率域复数图像中分离出频率域实部幅值图像
  *
  * @param src_complex 输入图像，频率域复数图像
- * @param dst_magnitude 输出图像，频率域实数图像；缩放为 CV_32F [0-1]
+ * @param dst_magnitude 输出图像，频率域实数图像；缩放为 CV_32F [0, 1]
  * @return None
  */
 void splitFrequencyMagnitude(Mat &src_complex, Mat &dst_magnitude);
@@ -172,9 +172,10 @@ Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order);
 /**
  * @brief 频率域滤波
  *
- * @param src 输入图像
- * @param dst 输出图像；缩放为 CV_8U [0-255]
+ * @param src 输入图像；注意 type 应为 CV_8UC1
+ * @param dst 输出图像；缩放为 CV_8U [0, 255]
  * @param kernel 频率域滤波核；其尺寸应与处理图像的尺寸一致
+ * @param rm_negative 负值移除标志位；true - 移除负值，false - 保留负值
  * @return None
  */
 void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);
@@ -190,8 +191,9 @@ Mat laplaceFreqKernel(Size size);
 /**
  * @brief 拉普拉斯频率域图像增强
  *
- * @param size 滤波核尺寸；应与处理图像的尺寸一致，src.size()
- * @return Laplace frequency kernel
+ * @param src 输入图像；注意 type 应为 CV_8UC1
+ * @param dst 输出图像
+ * @return None
  */
 void freqSharpenLaplace(Mat &src, Mat &dst);
 

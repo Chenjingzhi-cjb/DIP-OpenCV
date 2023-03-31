@@ -415,7 +415,7 @@ void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative) {
         }
     }
 
-    // 对幅值进行归一化操作，转换为 CV_8U 0-255
+    // 对幅值进行归一化操作，转换为 CV_8U [0, 255]
     normalize(image_real, image_real, 0, 255, NORM_MINMAX, CV_8U);
 
     // 裁剪至原尺寸
@@ -452,10 +452,13 @@ void freqSharpenLaplace(Mat &src, Mat &dst) {
     }
 
     // 拉普拉斯锐化
-    Mat temp;
+    Mat image_lf;
     Mat kernel = laplaceFreqKernel(src.size());
-    frequencyFilter(src, temp, kernel);
+    frequencyFilter(src, image_lf, kernel);
 
-    // 增强：g(x, y) = f(x, y) - lf(x, y)
-    subtract(src, temp, dst);
+    // 增强：g(x, y) = f(x, y) - image_lf(x, y)
+    Mat image_g;
+    subtract(src, image_lf, image_g);
+
+    image_g.copyTo(dst);
 }

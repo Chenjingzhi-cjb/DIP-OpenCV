@@ -120,5 +120,42 @@ void grayLayering(Mat &src, Mat &dst, uint r1, uint r2, uint s, bool other_zero)
  */
 void grayBitPlaneLayering(Mat &src, vector<Mat> &dst);
 
+/**
+ * @brief 灰度直方图，即单通道直方图
+ *
+ * @param src 输入图像；注意 type 应为 CV_8UC1
+ * @param dst 输出图像
+ * @param size 输出直方图的尺寸
+ * @param color 输出直方图的颜色
+ * @return None
+ */
+void grayHistogram(Mat &src, Mat &dst, Size size = Size(512, 400), const Scalar &color = Scalar(255, 255, 255));
+
+// 全局直方图均衡化
+// OpenCV void equalizeHist( InputArray src, OutputArray dst );
+
+/**
+ * @brief 局部直方图均衡化
+ *
+ * 调用 cv::createCLAHE()
+ *
+ * @param src 输入图像；注意 type 应为 CV_8UC1
+ * @param dst 输出图像
+ * @param clipLimit 对比度限制的阈值
+ * @param tileGridSize 网格尺寸；输入图像将被分割成大小相等的矩形块
+ * @return None
+ */
+void localEqualizeHist(Mat &src, Mat &dst, double clipLimit = 40.0, Size tileGridSize = Size(8, 8));
+
+/**
+ * @brief 直方图规定化
+ *
+ * @param src 输入原始图像；注意 type 应为 CV_8UC1
+ * @param dst 输出图像
+ * @param refer 输入参考图像；注意 type 应为 CV_8UC1
+ * @return None
+ */
+void matchHist(Mat &src, Mat &dst, Mat &refer);
+
 
 #endif //DIP_OPENCV_GRAY_TRANSFORM_H

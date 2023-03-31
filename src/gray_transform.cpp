@@ -30,7 +30,7 @@ void grayLog(Mat &src, Mat &dst, float k) {
         throw invalid_argument("grayLog(): Input image is empty!");
     }
 
-    // CV_8U -> [0-255]
+    // CV_8U -> [0, 255]
     int upper_limit = 255;
 
     double max_value = k * log10(1 + upper_limit);
@@ -41,7 +41,7 @@ void grayLog(Mat &src, Mat &dst, float k) {
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
-            // 进行 对数变换 并 线性缩放至 [0-255]
+            // 进行 对数变换 并 线性缩放至 [0, 255]
             temp.at<uchar>(r, c) = uchar(k * log10(1 + m) * d);
         }
     }
@@ -54,7 +54,7 @@ void grayAntiLog(Mat &src, Mat &dst, float k) {
         throw invalid_argument("grayAntiLog(): Input image is empty!");
     }
 
-    // CV_8U -> [0-255]
+    // CV_8U -> [0, 255]
     int upper_limit = 255;
 
     double max_value = k * (pow(10, upper_limit) - 1);
@@ -65,7 +65,7 @@ void grayAntiLog(Mat &src, Mat &dst, float k) {
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
-            // 进行 反对数变换 并 线性缩放至 [0-255]
+            // 进行 反对数变换 并 线性缩放至 [0, 255]
             temp.at<uchar>(r, c) = uchar(k * (pow(10, m) - 1) * d);
         }
     }
@@ -83,7 +83,7 @@ void grayGamma(Mat &src, Mat &dst, float k, float gamma) {
         throw invalid_argument(err);
     }
 
-    // CV_8U -> [0-255]
+    // CV_8U -> [0, 255]
     int upper_limit = 255;
 
     double max_value = k * pow(upper_limit, gamma);
@@ -94,7 +94,7 @@ void grayGamma(Mat &src, Mat &dst, float k, float gamma) {
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
-            // 进行 伽马变换 并 线性缩放至 [0-255]
+            // 进行 伽马变换 并 线性缩放至 [0, 255]
             temp.at<uchar>(r, c) = uchar(k * pow(m, gamma) * d);
         }
     }
@@ -107,7 +107,7 @@ void grayContrastStretch(Mat &src, Mat &dst, uint r1, uint s1, uint r2, uint s2)
         throw invalid_argument("grayContrastStretch(): Input image is empty!");
     }
 
-    // CV_8U -> [0-255]
+    // CV_8U -> [0, 255]
     int upper_limit = 255;
 
     if (r1 >= r2 || s1 >= s2) {
@@ -162,7 +162,7 @@ void grayLayering(Mat &src, Mat &dst, uint r1, uint r2, uint s, bool other_zero)
         throw invalid_argument("grayLayering(): Input image is empty!");
     }
 
-    // CV_8U -> [0-255]
+    // CV_8U -> [0, 255]
     int upper_limit = 255;
 
     if (r1 > r2) {
@@ -233,3 +233,100 @@ void grayBitPlaneLayering(Mat &src, vector<Mat> &dst) {
     }
 }
 
+void grayHistogram(Mat &src, Mat &dst, Size size, const Scalar &color) {
+    if (src.empty()) {
+        throw invalid_argument("grayHistogram(): Input image is empty!");
+    }
+
+    // 计算直方图 CV_8U -> 256
+    Mat hist_image_cal;
+    int hist_size = 256;
+    float range[] = {0, 256};
+    const float *hist_range = {range};
+    calcHist(&src, 1, nullptr, Mat(), hist_image_cal, 1, &hist_size, &hist_range);
+
+    // 归一化到 [0, 1]
+    normalize(hist_image_cal, hist_image_cal, 0, 1, NORM_MINMAX);
+
+    // 绘制直方图
+    Mat hist_image_show(size.height, size.width, CV_8UC3, Scalar(0, 0, 0));
+    int bin_width = cvRound((double) size.width / hist_size);
+    for (int i = 1; i < hist_size; i++) {
+        line(hist_image_show,
+             Point(bin_width * (i - 1), size.height - cvRound(hist_image_cal.at<float>(i - 1) * (float) size.height)),
+             Point(bin_width * i, size.height - cvRound(hist_image_cal.at<float>(i) * (float) size.height)),
+             color, 2);
+    }
+
+    hist_image_show.copyTo(dst);
+}
+
+void localEqualizeHist(Mat &src, Mat &dst, double clipLimit, Size tileGridSize) {
+    if (src.empty()) {
+        throw invalid_argument("localEqualizeHist(): Input src image is empty!");
+    }
+    
+    Ptr<CLAHE> clahe = createCLAHE(clipLimit, tileGridSize);
+    clahe->apply(src, dst);
+}
+
+void matchHist(Mat &src, Mat &dst, Mat &refer) {
+    if (src.empty()) {
+        throw invalid_argument("matchHist(): Input src image is empty!");
+    }
+
+    if (refer.empty()) {
+        throw invalid_argument("matchHist(): Input refer image is empty!");
+    }
+
+    // 对 原始图像 和 参考图像 进行直方图均衡
+    Mat src_equ, refer_equ;
+    equalizeHist(src, src_equ);
+    equalizeHist(refer, refer_equ);
+
+    // 计算均衡后的图像的直方图 CV_8U -> 256
+    Mat src_hist, refer_hist;
+    const int hist_size = 256;
+    float range[] = {0, hist_size};
+    const float *hist_range = {range};
+    calcHist(&src_equ, 1, nullptr, Mat(), src_hist, 1, &hist_size, &hist_range);
+    calcHist(&refer_equ, 1, nullptr, Mat(), refer_hist, 1, &hist_size, &hist_range);
+
+    // 计算均衡后的图像的累计概率
+    auto src_image_size = (float) (src_equ.rows * src_equ.cols);
+    auto refer_image_size = (float) (refer_equ.rows * refer_equ.cols);
+    float src_cdf[hist_size] = {(src_hist.at<float>(0) / src_image_size)};
+    float refer_cdf[hist_size] = {(refer_hist.at<float>(0) / refer_image_size)};
+    for (int i = 1; i < hist_size; i++) {
+        src_cdf[i] = src_hist.at<float>(i) / src_image_size + src_cdf[i - 1];
+        refer_cdf[i] = refer_hist.at<float>(i) / refer_image_size + refer_cdf[i - 1];
+    }
+
+    // 进行直方图规定化
+    Mat matched = Mat::zeros(src.size(), CV_8UC1);
+    // 1. 计算累计概率的差值
+    float diff_cdf[hist_size][hist_size];
+    for (int i = 0; i < hist_size; i++) {
+        for (int j = 0; j < hist_size; j++) {
+            diff_cdf[i][j] = fabs(src_cdf[i] - refer_cdf[j]);
+        }
+    }
+    // 2. 构建灰度级映射表
+    Mat lut(1, hist_size, CV_8UC1);
+    for (int i = 1; i < hist_size; i++) {
+        // 查找累积概率差最小(灰度最接近)的规定化灰度
+        float min = diff_cdf[i][0];
+        int index = 0;
+        for (int j = 0; j < hist_size; j++) {
+            if (diff_cdf[i][j] < min) {
+                min = diff_cdf[i][j];
+                index = j;
+            }
+        }
+        lut.at<uchar>(i) = index;
+    }
+    // 3. 映射
+    LUT(src_equ, lut, matched);
+
+    matched.copyTo(dst);
+}

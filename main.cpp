@@ -3,14 +3,13 @@
 
 
 int main() {
-    Mat image = imread(R"(..\image\chestXray.tif)");
+    Mat image = imread(R"(..\image\hidden-symbols.tif)");
 
     Mat image_gray;
     bgrToGray(image, image_gray);
 
     Mat dst;
-    Mat kernel = highFreqEmphasisKernel(image_gray.size(), 30);
-    frequencyFilter(image_gray, dst, kernel);
+    localEqualizeHist(image_gray, dst, 40, Size(64, 64));
 
     namedWindow("gray", WINDOW_AUTOSIZE);
     imshow("gray", image_gray);

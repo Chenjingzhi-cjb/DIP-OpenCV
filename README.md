@@ -28,6 +28,14 @@ void grayContrastStretch(Mat &src, Mat &dst, uint r1, uint s1, uint r2, uint s2)
 void grayLayering(Mat &src, Mat &dst, uint r1, uint r2, uint s, bool other_zero);  // 灰度值级分层
 
 void grayBitPlaneLayering(Mat &src, vector<Mat> &dst);  // 灰度比特平面分层
+
+void grayHistogram(Mat &src, Mat &dst, Size size = Size(512, 400), const Scalar &color = Scalar(255, 255, 255));  // 灰度直方图，即单通道直方图
+
+// OpenCV void equalizeHist( InputArray src, OutputArray dst );  全局直方图均衡化
+
+void localEqualizeHist(Mat &src, Mat &dst, double clipLimit = 40.0, Size tileGridSize = Size(8, 8));  // 局部直方图均衡化
+
+void matchHist(Mat &src, Mat &dst, Mat &refer);  // 直方图规定化
 ```
 
 - 空间滤波 **spatial_filter.h**
