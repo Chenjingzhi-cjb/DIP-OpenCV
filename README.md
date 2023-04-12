@@ -29,7 +29,7 @@ void grayLayering(Mat &src, Mat &dst, uint r1, uint r2, uint s, bool other_zero)
 
 void grayBitPlaneLayering(Mat &src, vector<Mat> &dst);  // 灰度比特平面分层
 
-void grayHistogram(Mat &src, Mat &dst, Size size = Size(512, 400), const Scalar &color = Scalar(255, 255, 255));  // 灰度直方图，即单通道直方图
+Mat grayHistogram(Mat &src, Size size = Size(512, 400), const Scalar &color = Scalar(255, 255, 255));  // 灰度直方图，即单通道直方图
 
 // OpenCV void equalizeHist( InputArray src, OutputArray dst );  全局直方图均衡化
 
@@ -108,5 +108,23 @@ void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);
 Mat laplaceFreqKernel(Size size);  // 拉普拉斯频率滤波核函数
 
 void freqSharpenLaplace(Mat &src, Mat &dst);  // 拉普拉斯频率域锐化
+```
+
+### 5. 图像复原与重构
+
+- **image_noise.h**
+
+```cpp
+void addNoiseGauss(Mat &src, Mat &dst, int mean, int sigma);  // 添加高斯噪声
+
+void addNoiseMean(Mat &src, Mat &dst, int lower, int upper);  // 添加平均噪声
+
+void addNoiseRayleigh(Mat &src, Mat &dst, double sigma);  // 添加瑞利噪声
+
+void addNoiseGamma(Mat &src, Mat &dst, double sigma, double alpha, double beta);  // 添加伽马(爱尔兰）噪声
+
+void addNoiseExp(Mat &src, Mat &dst, double lambda);  // 添加指数噪声
+
+void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, double salt_value = 255, double pepper_value = 0);  // 添加椒盐噪声
 ```
 

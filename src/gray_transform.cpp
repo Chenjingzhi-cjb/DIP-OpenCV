@@ -233,7 +233,7 @@ void grayBitPlaneLayering(Mat &src, vector<Mat> &dst) {
     }
 }
 
-void grayHistogram(Mat &src, Mat &dst, Size size, const Scalar &color) {
+Mat grayHistogram(Mat &src, Size size, const Scalar &color) {
     if (src.empty()) {
         throw invalid_argument("grayHistogram(): Input image is empty!");
     }
@@ -249,16 +249,16 @@ void grayHistogram(Mat &src, Mat &dst, Size size, const Scalar &color) {
     normalize(hist_image_cal, hist_image_cal, 0, 1, NORM_MINMAX);
 
     // 绘制直方图
-    Mat hist_image_show(size.height, size.width, CV_8UC3, Scalar(0, 0, 0));
+    Mat hist_image_paint(size.height, size.width, CV_8UC3, Scalar(0, 0, 0));
     int bin_width = cvRound((double) size.width / hist_size);
     for (int i = 1; i < hist_size; i++) {
-        line(hist_image_show,
+        line(hist_image_paint,
              Point(bin_width * (i - 1), size.height - cvRound(hist_image_cal.at<float>(i - 1) * (float) size.height)),
              Point(bin_width * i, size.height - cvRound(hist_image_cal.at<float>(i) * (float) size.height)),
              color, 2);
     }
 
-    hist_image_show.copyTo(dst);
+    return hist_image_paint;
 }
 
 void localEqualizeHist(Mat &src, Mat &dst, double clipLimit, Size tileGridSize) {
