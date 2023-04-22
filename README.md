@@ -68,7 +68,7 @@ void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double thr
 
 ### 4. 频率域滤波
 
-- **spatial_filter.h**
+- **frequency_filter.h**
 
 ```cpp
 void dftShift(Mat &image);  // 傅里叶图像象限变换
@@ -126,5 +126,19 @@ void addNoiseGamma(Mat &src, Mat &dst, double sigma, double alpha, double beta);
 void addNoiseExp(Mat &src, Mat &dst, double lambda);  // 添加指数噪声
 
 void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, double salt_value = 255, double pepper_value = 0);  // 添加椒盐噪声
+```
+
+- **spatial_filter.h**
+
+```cpp
+void geometricMeanFilter(Mat &src, Mat &dst, Size ksize);  // 几何均值滤波器，效果优于算术平均滤波器（即盒式滤波器）
+
+void harmonicAvgFilter(Mat &src, Mat &dst, Size ksize);  // 谐波平均滤波器，能够处理 盐粒噪声 或 类高斯噪声，不能处理 胡椒噪声
+
+void antiHarmonicAvgFilter(Mat &src, Mat &dst, Size ksize, float order);  // 反谐波平均滤波器，能够处理 盐粒噪声 或 胡椒噪声 或 类高斯噪声
+
+void midPointFilter(Mat &src, Mat &dst, Size ksize);  // 中点滤波器，适合处理随机分布的噪声，如 高斯噪声 或 均匀噪声
+
+void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d);  // 修正阿尔法滤波器，适合处理多种混合噪声
 ```
 

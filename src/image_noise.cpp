@@ -175,7 +175,7 @@ void addNoiseExp(Mat &src, Mat &dst, double lambda) {
     }
 }
 
-void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, double salt_value, double pepper_value) {
+void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, int type, double salt_value, double pepper_value) {
     if (src.empty()) {
         throw invalid_argument("addNoiseSaltPepper(): Input image is empty!");
     }
@@ -195,10 +195,23 @@ void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, double salt_valu
             for (int j = 0; j < src_copy.cols; j++) {
                 double u = rng.uniform(0.0, 1.0);
 
-                if (u < noise_level / 2.0) {
-                    src_copy.at<double>(i, j) = salt_value;  // Add salt noise, white
-                } else if (u < noise_level) {
-                    src_copy.at<double>(i, j) = pepper_value;  // Add pepper noise, black
+                if (type == 0) {
+                    if (u < noise_level / 2.0) {
+                        src_copy.at<double>(i, j) = salt_value;  // Add salt noise, white
+                    } else if (u < noise_level) {
+                        src_copy.at<double>(i, j) = pepper_value;  // Add pepper noise, black
+                    }
+                } else if (type == 1) {
+                    if (u < noise_level) {
+                        src_copy.at<double>(i, j) = salt_value;
+                    }
+                } else if (type == 2) {
+                    if (u < noise_level) {
+                        src_copy.at<double>(i, j) = pepper_value;
+                    }
+                } else {
+                    cout << "addNoiseSaltPepper(): The type does not meet the requirements. " << endl;
+                    return;
                 }
             }
         }
@@ -210,10 +223,23 @@ void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, double salt_valu
             for (int j = 0; j < src_copy.cols; j++) {
                 double u = rng.uniform(0.0, 1.0);
 
-                if (u < noise_level / 2.0) {
-                    src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(salt_value, salt_value, salt_value);
-                } else if (u < noise_level) {
-                    src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(pepper_value, pepper_value, pepper_value);
+                if (type == 0) {
+                    if (u < noise_level / 2.0) {
+                        src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(salt_value, salt_value, salt_value);
+                    } else if (u < noise_level) {
+                        src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(pepper_value, pepper_value, pepper_value);
+                    }
+                } else if (type == 1) {
+                    if (u < noise_level) {
+                        src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(salt_value, salt_value, salt_value);
+                    }
+                } else if (type == 2) {
+                    if (u < noise_level) {
+                        src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(pepper_value, pepper_value, pepper_value);
+                    }
+                } else {
+                    cout << "addNoiseSaltPepper(): The type does not meet the requirements. " << endl;
+                    return;
                 }
             }
         }

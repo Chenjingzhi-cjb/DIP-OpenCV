@@ -3,8 +3,13 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <cmath>
+#include <vector>
+#include <algorithm>
+#include <numeric>
 #include "opencv2/opencv.hpp"
 #include "gray_transform.h"
+#include "common.h"
 
 
 using namespace std;
@@ -73,8 +78,7 @@ void shadingCorrection(Mat &src, Mat &dst, float k1, float k2);
  *
  * 中值滤波调用 cv::medianBlur()
  *
- * @param src 输入图像；注意当 ksize 为 3 or 5 时，depth 应为 CV_8U, CV_16U or CV_32F；
- *        而对于较大的孔径尺寸，depth 只能为 CV_8U
+ * @param src 输入图像；type: CV_8UC1
  * @param dst 输出图像
  * @param ksize 卷积核的尺寸；必须为正奇数
  * @param percentage 排序（从小到大）位置的百分比值；取值范围为 [0, 100]；默认为 50，即中值滤波，适用于去除椒盐噪声（冲激）
@@ -99,15 +103,15 @@ void sharpenSpatialFilterLaplace(Mat &src, Mat &dst, int ksize = 1, double scale
                                  int borderType = BORDER_DEFAULT);
 
 /**
- * @brief 模板锐化，当 k = 1 时，其为钝化掩蔽；当 k > 1 时，其为高提升滤波；当 k < 1 时，可以减少钝化模板的贡献。
+ * @brief 模板锐化。当 k = 1 时，其为钝化掩蔽；当 k > 1 时，其为高提升滤波；当 k < 1 时，可以减少钝化模板的贡献。
  *
  * @param src 输入图像
  * @param dst 输出图像
- * @param smooth_size 模糊（平滑）处理的卷积核尺寸
+ * @param smooth_ksize 模糊（平滑）处理的卷积核尺寸；必须为正奇数
  * @param k 钝化模板权值；k >= 0；默认为 1，即钝化掩蔽
  * @return None
  */
-void sharpenSpatialFilterTemplate(Mat &src, Mat &dst, Size smooth_size, float k = 1);
+void sharpenSpatialFilterTemplate(Mat &src, Mat &dst, Size smooth_ksize, float k = 1);
 
 // Roberts 算子
 void sharpenSpatialFilterRoberts();
@@ -165,6 +169,59 @@ void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale
  */
 void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double threshold2, int apertureSize = 3,
                                bool L2gradient = false);
+
+/**
+ * @brief 几何均值滤波器，效果优于算术平均滤波器（即盒式滤波器）
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param ksize 滤波核尺寸；必须为正奇数
+ * @return None
+ */
+void geometricMeanFilter(Mat &src, Mat &dst, Size ksize);
+
+/**
+ * @brief 谐波平均滤波器，能够处理 盐粒噪声 或 类高斯噪声，不能处理 胡椒噪声
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param ksize 滤波核尺寸；必须为正奇数
+ * @return None
+ */
+void harmonicAvgFilter(Mat &src, Mat &dst, Size ksize);
+
+/**
+ * @brief 反谐波平均滤波器，能够处理 盐粒噪声 或 胡椒噪声 或 类高斯噪声
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param ksize 滤波核尺寸；必须为正奇数
+ * @param order 阶数，即 Q；当 Q 为正值时，处理胡椒噪声；当 Q 为负值时，处理盐粒噪声；
+ *        当 Q = 0 时，简化为算术平均滤波器；当 Q = -1 时，简化为谐波平均滤波器
+ * @return None
+ */
+void antiHarmonicAvgFilter(Mat &src, Mat &dst, Size ksize, float order);
+
+/**
+ * @brief 中点滤波器，适合处理随机分布的噪声，如 高斯噪声 或 均匀噪声
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param ksize 滤波核尺寸；必须为正奇数
+ * @return None
+ */
+void midPointFilter(Mat &src, Mat &dst, Size ksize);
+
+/**
+ * @brief 修正阿尔法滤波器，适合处理多种混合噪声
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param ksize 滤波核尺寸；必须为正奇数
+ * @param d 舍弃像素数量；取值范围为 [0, mn - 1]
+ * @return None
+ */
+void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d);
 
 
 #endif //DIP_OPENCV_SPATIAL_FILTER_H

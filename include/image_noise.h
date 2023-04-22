@@ -76,12 +76,15 @@ void addNoiseExp(Mat &src, Mat &dst, double lambda);
  * @param src 输入图像；channels: 1, 3
  * @param dst 输出图像
  * @param noise_level 噪声分层值；取值范围为 (0, 1)；
- *        含义为 0 <= random < noise_level/2 => salt, noise_level/2 <= random < noise_level => pepper
+ *        type 为 0 时，含义为 0 <= random < noise_level/2 => salt, noise_level/2 <= random < noise_level => pepper；
+ *        type 为 1 时，含义为 0 <= random < noise_level => salt；
+ *        type 为 2 时，含义为 0 <= random < noise_level => pepper
+ * @param type 噪声类型；0 - 椒盐噪声，1 - 盐粒噪声，2 - 胡椒噪声
  * @param salt_value 盐噪声值（即白色噪声）；默认 depth() 为 CV_8U，则 salt_value 为 255
  * @param pepper_value 椒噪声值（即黑色噪声）；默认 depth() 为 CV_8U，则 pepper_value 为 0
  * @return None
  */
-void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, double salt_value = 255, double pepper_value = 0);
+void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, int type = 0, double salt_value = 255, double pepper_value = 0);
 
 
 #endif //DIP_OPENCV_IMAGE_NOISE_H
