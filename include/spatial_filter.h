@@ -223,5 +223,25 @@ void midPointFilter(Mat &src, Mat &dst, Size ksize);
  */
 void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d);
 
+/**
+ * @brief 自适应局部降噪滤波器
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param ksize 滤波核尺寸；必须为正奇数
+ * @return None
+ */
+void adaptiveLocalFilter(Mat &src, Mat &dst, Size ksize);
+
+/**
+ * @brief 自适应中值滤波器，能够去除椒盐噪声、平滑其他非冲激噪声且减少失真
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param max_ksize 最大滤波核尺寸；必须为正奇数 and >= 3
+ * @return None
+ */
+void adaptiveMedianFilter(Mat &src, Mat &dst, int max_ksize);
+
 
 #endif //DIP_OPENCV_SPATIAL_FILTER_H

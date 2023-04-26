@@ -87,6 +87,11 @@ void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage) {
         throw invalid_argument("orderStatisticsFilter(): Input image's type error! It should be CV_8UC1");
     }
 
+    if (ksize <= 0 || ksize % 2 == 0) {
+        string err = R"(orderStatisticsFilter(): Parameter Error! You should make sure ksize is a positive odd number!)";
+        throw invalid_argument(err);
+    }
+
     if (percentage < 0 || percentage > 100) {
         string err = R"(orderStatisticsFilter(): Parameter Error! You should make sure "0 <= percentage <= 100"!)";
         throw invalid_argument(err);
@@ -210,13 +215,13 @@ void geometricMeanFilter(Mat &src, Mat &dst, Size ksize) {
 
     for (int i = row_border; i < src_copy.rows - row_border; i++) {
         for (int j = col_border; j < src_copy.cols - col_border; j++) {
-            double product = 1.0;
+            double value = 1.0;
             for (int k = -row_border; k <= row_border; k++) {
                 for (int l = -col_border; l <= col_border; l++) {
-                    product *= src_copy.at<double>(i + k, j + l);
+                    value *= src_copy.at<double>(i + k, j + l);
                 }
             }
-            temp.at<double>(i, j) = pow(product, 1.0 / (ksize.height * ksize.width));
+            temp.at<double>(i, j) = pow(value, 1.0 / (ksize.height * ksize.width));
         }
     }
 
@@ -250,13 +255,13 @@ void harmonicAvgFilter(Mat &src, Mat &dst, Size ksize) {
 
     for (int i = row_border; i < src_copy.rows - row_border; i++) {
         for (int j = col_border; j < src_copy.cols - col_border; j++) {
-            double product = 0;
+            double value = 0;
             for (int k = -row_border; k <= row_border; k++) {
                 for (int l = -col_border; l <= col_border; l++) {
-                    product += (1.0 / src_copy.at<uchar>(i + k, j + l));
+                    value += (1.0 / src_copy.at<uchar>(i + k, j + l));
                 }
             }
-            temp.at<uchar>(i, j) = (int) ((ksize.height * ksize.width) / product);
+            temp.at<uchar>(i, j) = (int) ((ksize.height * ksize.width) / value);
         }
     }
 
@@ -289,15 +294,15 @@ void antiHarmonicAvgFilter(Mat &src, Mat &dst, Size ksize, float order) {
 
     for (int i = row_border; i < src_copy.rows - row_border; i++) {
         for (int j = col_border; j < src_copy.cols - col_border; j++) {
-            double product_n = 0;  // 分子
-            double product_d = 0;  // 分母
+            double value_n = 0;  // 分子
+            double value_d = 0;  // 分母
             for (int k = -row_border; k <= row_border; k++) {
                 for (int l = -col_border; l <= col_border; l++) {
-                    product_n += pow(src_copy.at<uchar>(i + k, j + l), order + 1);
-                    product_d += pow(src_copy.at<uchar>(i + k, j + l), order);
+                    value_n += pow(src_copy.at<uchar>(i + k, j + l), order + 1);
+                    value_d += pow(src_copy.at<uchar>(i + k, j + l), order);
                 }
             }
-            temp.at<uchar>(i, j) = (int) (product_n / product_d);
+            temp.at<uchar>(i, j) = (int) (value_n / value_d);
         }
     }
 
@@ -384,13 +389,142 @@ void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d) {
                     values.emplace_back(src_copy.at<uchar>(i + k, j + l));
                 }
             }
-            sort(values.begin(), values.end());
+            std::sort(values.begin(), values.end());
             temp.at<uchar>(i, j) = accumulate(next(values.begin(), d_half), prev(values.end(), d_half), 0) /
                                    (ksize.height * ksize.width - d_half * 2);
         }
     }
 
     Mat temp_roi = temp(Rect(col_border, row_border, src.cols, src.rows));
+
+    temp_roi.copyTo(dst);
+}
+
+void adaptiveLocalFilter(Mat &src, Mat &dst, Size ksize) {
+    if (src.empty()) {
+        throw invalid_argument("adaptiveLocalFilter(): Input image is empty!");
+    }
+
+    if (src.type() != CV_8UC1) {
+        throw invalid_argument("adaptiveLocalFilter(): Input image's type error! It should be CV_8UC1");
+    }
+
+    if ((ksize.width <= 0) || (ksize.width % 2 == 0) || (ksize.height <= 0) || (ksize.height % 2 == 0)) {
+        string err = R"(adaptiveLocalFilter(): Parameter Error! You should make sure ksize is positive odd number!)";
+        throw invalid_argument(err);
+    }
+
+    Mat src_mean, src_std;
+    meanStdDev(src, src_mean, src_std);
+    double sigma_n = pow(src_std.at<double>(0), 2);  // 全局方差近似表示噪声方差
+
+    int row_border = (ksize.height - 1) / 2;
+    int col_border = (ksize.width - 1) / 2;
+
+    Mat src_copy;
+    copyMakeBorder(src, src_copy, row_border, row_border, col_border, col_border, BORDER_REFLECT);
+
+    Mat temp = Mat::zeros(src_copy.size(), src_copy.type());
+    vector<int> values{};
+
+    for (int i = row_border; i < src_copy.rows - row_border; i++) {
+        for (int j = col_border; j < src_copy.cols - col_border; j++) {
+            values.clear();
+            for (int k = -row_border; k <= row_border; k++) {
+                for (int l = -col_border; l <= col_border; l++) {
+                    values.emplace_back(src_copy.at<uchar>(i + k, j + l));
+                }
+            }
+
+            // 计算参数
+            double mean_s = (double) accumulate(begin(values), end(values), 0) / (double) values.size();
+            double sigma_s  = 0;
+            for_each (begin(values), end(values), [&](const int d) {
+                sigma_s += pow(d - mean_s, 2);
+            });
+            sigma_s /= (double) values.size();
+            int gxy = src_copy.at<uchar>(i, j);
+
+            // 执行规则
+            if (sigma_n <= sigma_s) {
+                temp.at<uchar>(i, j) = (int) (gxy - (sigma_n / sigma_s) * (gxy - mean_s));
+            } else {
+                temp.at<uchar>(i, j) = (int) mean_s;
+            }
+        }
+    }
+
+    Mat temp_roi = temp(Rect(col_border, row_border, src.cols, src.rows));
+
+    temp_roi.copyTo(dst);
+}
+
+void adaptiveMedianFilter(Mat &src, Mat &dst, int max_ksize) {
+    if (src.empty()) {
+        throw invalid_argument("adaptiveMedianFilter(): Input image is empty!");
+    }
+
+    if (src.type() != CV_8UC1) {
+        throw invalid_argument("adaptiveMedianFilter(): Input image's type error! It should be CV_8UC1");
+    }
+
+    int init_ksize = 3;
+    int init_border = (init_ksize - 1) / 2;
+
+    if ((max_ksize < init_ksize) || (max_ksize % 2 == 0)) {
+        string err = R"(adaptiveMedianFilter(): Parameter Error! You should make sure max_ksize is a odd number and "max_ksize >= 3"!)";
+        throw invalid_argument(err);
+    }
+
+    Mat src_copy;
+    copyMakeBorder(src, src_copy, init_border, init_border, init_border, init_border, BORDER_REFLECT);
+
+    Mat temp = Mat::zeros(src_copy.size(), src_copy.type());
+    vector<int> values{};
+
+    for (int i = init_border; i < src_copy.rows - init_border; i++) {
+        for (int j = init_border; j < src_copy.cols - init_border; j++) {
+            values.clear();
+            int ksize = init_ksize;
+            int border = init_border;
+            while (true) {
+                for (int k = -border; k <= border; k++) {
+                    for (int l = -border; l <= border; l++) {
+                        if ((i + k < 0) || (j + l < 0) || (i + k >= src_copy.rows) || (j + l >= src_copy.cols)) {
+                            values.emplace_back(0);  // 零填充
+                        }
+                        values.emplace_back(src_copy.at<uchar>(i + k, j + l));
+                    }
+                }
+
+                // 计算参数
+                std::sort(values.begin(), values.end());
+                int zmin = values.front();
+                int zmax = values.back();
+                int zmed = values[values.size() / 2];
+                int zxy = src_copy.at<uchar>(i, j);
+
+                // 执行规则
+                if (zmin < zmed && zmed < zmax) {  // level B
+                    if (zmin < zxy && zxy < zmax) {
+                        temp.at<uchar>(i, j) = zxy;
+                    } else {
+                        temp.at<uchar>(i, j) = zmed;
+                    }
+                    break;
+                } else {  // zmed == zmin || zmed == zmax, level A
+                    ksize += 2;
+                    border += 1;
+                    if (ksize > max_ksize) {
+                        temp.at<uchar>(i, j) = zmed;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    Mat temp_roi = temp(Rect(init_border, init_border, src.cols, src.rows));
 
     temp_roi.copyTo(dst);
 }

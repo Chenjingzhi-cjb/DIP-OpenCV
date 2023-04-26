@@ -71,11 +71,11 @@ void addNoiseGamma(Mat &src, Mat &dst, double sigma, double alpha, double beta);
 void addNoiseExp(Mat &src, Mat &dst, double lambda);
 
 /**
- * @brief 添加椒盐噪声
+ * @brief 添加椒盐(冲激)噪声
  *
  * @param src 输入图像；channels: 1, 3
  * @param dst 输出图像
- * @param noise_level 噪声分层值；取值范围为 (0, 1)；
+ * @param noise_level 噪声概率值；取值范围为 (0, 1)；
  *        type 为 0 时，含义为 0 <= random < noise_level/2 => salt, noise_level/2 <= random < noise_level => pepper；
  *        type 为 1 时，含义为 0 <= random < noise_level => salt；
  *        type 为 2 时，含义为 0 <= random < noise_level => pepper

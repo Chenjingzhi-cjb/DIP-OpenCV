@@ -125,7 +125,7 @@ void addNoiseGamma(Mat &src, Mat &dst, double sigma, double alpha, double beta);
 
 void addNoiseExp(Mat &src, Mat &dst, double lambda);  // 添加指数噪声
 
-void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, double salt_value = 255, double pepper_value = 0);  // 添加椒盐噪声
+void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, double salt_value = 255, double pepper_value = 0);  // 添加椒盐(冲激)噪声
 ```
 
 - **spatial_filter.h**
@@ -140,5 +140,9 @@ void antiHarmonicAvgFilter(Mat &src, Mat &dst, Size ksize, float order);  // 反
 void midPointFilter(Mat &src, Mat &dst, Size ksize);  // 中点滤波器，适合处理随机分布的噪声，如 高斯噪声 或 均匀噪声
 
 void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d);  // 修正阿尔法滤波器，适合处理多种混合噪声
+
+void adaptiveLocalFilter(Mat &src, Mat &dst, Size ksize);  // 自适应局部降噪滤波器
+
+void adaptiveMedianFilter(Mat &src, Mat &dst, int max_ksize);  // 自适应中值滤波器，能够去除椒盐噪声、平滑其他非冲激噪声且减少失真
 ```
 
