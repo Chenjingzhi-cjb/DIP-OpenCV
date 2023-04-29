@@ -1,11 +1,7 @@
 #ifndef DIP_OPENCV_GRAY_TRANSFORM_H
 #define DIP_OPENCV_GRAY_TRANSFORM_H
 
-#include <iostream>
-#include <stdexcept>
-#include "opencv2/opencv.hpp"
-#include <cmath>
-#include <vector>
+#include "common.h"
 
 
 using namespace std;

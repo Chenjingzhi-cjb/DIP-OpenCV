@@ -103,11 +103,15 @@ Mat gaussBandRejectFreqKernel(Size size, int C0, int width);  // 高斯带阻频
 
 Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order);  // 巴特沃斯带阻频率滤波核函数
 
+// Mat notchBandRejectFreqKernel() 陷波带阻滤波核（定制化，主要用于处理周期噪声）
+
 void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);  // 频率域滤波
 
 Mat laplaceFreqKernel(Size size);  // 拉普拉斯频率滤波核函数
 
 void freqSharpenLaplace(Mat &src, Mat &dst);  // 拉普拉斯频率域锐化
+
+void frequencyFilterPlMul(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);  // 频率域滤波（复数乘法版）
 ```
 
 ### 5. 图像复原与重构
@@ -144,5 +148,11 @@ void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d);  // 修正�
 void adaptiveLocalFilter(Mat &src, Mat &dst, Size ksize);  // 自适应局部降噪滤波器
 
 void adaptiveMedianFilter(Mat &src, Mat &dst, int max_ksize);  // 自适应中值滤波器，能够去除椒盐噪声、平滑其他非冲激噪声且减少失真
+```
+
+- **frequency_filter.h**
+
+```cpp
+void bestNotchFilter(Mat &src, Mat &dst, Mat &nbp_kernel, Size opt_ksize);  // 最优陷波滤波
 ```
 

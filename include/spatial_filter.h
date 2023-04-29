@@ -1,15 +1,8 @@
 #ifndef DIP_OPENCV_SPATIAL_FILTER_H
 #define DIP_OPENCV_SPATIAL_FILTER_H
 
-#include <iostream>
-#include <stdexcept>
-#include <cmath>
-#include <vector>
-#include <algorithm>
-#include <numeric>
-#include "opencv2/opencv.hpp"
-#include "gray_transform.h"
 #include "common.h"
+#include "gray_transform.h"
 
 
 using namespace std;

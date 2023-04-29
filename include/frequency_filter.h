@@ -1,10 +1,7 @@
 #ifndef DIP_OPENCV_FREQUENCY_FILTER_H
 #define DIP_OPENCV_FREQUENCY_FILTER_H
 
-#include <iostream>
-#include <stdexcept>
-#include "opencv2/opencv.hpp"
-#include <cmath>
+#include "common.h"
 
 
 using namespace std;
@@ -169,6 +166,8 @@ Mat gaussBandRejectFreqKernel(Size size, int C0, int width);
  */
 Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order);
 
+// Mat notchBandRejectFreqKernel() 陷波带阻滤波核（定制化，主要用于处理周期噪声）
+
 /**
  * @brief 频率域滤波
  *
@@ -196,6 +195,30 @@ Mat laplaceFreqKernel(Size size);
  * @return None
  */
 void freqSharpenLaplace(Mat &src, Mat &dst);
+
+/**
+ * @brief 频率域滤波（复数乘法版）
+ *
+ * 调用 cv::mulSpectrums()
+ *
+ * @param src 输入图像；注意 type 应为 CV_8UC1
+ * @param dst 输出图像；缩放为 CV_8U [0, 255]
+ * @param kernel 频率域滤波核；其尺寸应与处理图像的尺寸一致；注意 type 应为 CV_32FC2
+ * @param rm_negative 负值移除标志位；true - 移除负值，false - 保留负值
+ * @return None
+ */
+void frequencyFilterPlMul(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);
+
+/**
+ * @brief 最优陷波滤波
+ *
+ * @param src 输入图像；注意 type 应为 CV_8UC1
+ * @param dst 输出图像
+ * @param nbp_kernel 陷波带通滤波核；用于获取噪声图像，其尺寸应与处理图像的尺寸一致
+ * @param opt_ksize 优化滤波核尺寸；用于优化滤波图像，必须为正奇数
+ * @return None
+ */
+void bestNotchFilter(Mat &src, Mat &dst, Mat &nbp_kernel, Size opt_ksize);
 
 
 #endif //DIP_OPENCV_FREQUENCY_FILTER_H

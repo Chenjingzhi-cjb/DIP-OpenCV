@@ -462,3 +462,105 @@ void freqSharpenLaplace(Mat &src, Mat &dst) {
 
     image_g.copyTo(dst);
 }
+
+void frequencyFilterPlMul(Mat &src, Mat &dst, Mat &kernel, bool rm_negative) {
+    if (src.empty()) {
+        throw invalid_argument("frequencyFilterPlMul(): Input image is empty!");
+    }
+
+    // 转到频率域
+    Mat image_frequency;
+    spatialToFrequency(src, image_frequency);
+
+    // 频率域 复数乘法
+    // a * b = (a1 + i*a2) * (b1 + i*b2)
+    //       = a1*b1 + i*(a1*b2 + a2*b1) - b2*a2
+    //       = (a1*b1 - a2*b2) + i*(a1*b2 + a2*b1)
+    mulSpectrums(image_frequency, kernel, image_frequency, 0);
+
+    // 转到空间域
+    Mat image_real;
+    image_real = Mat::zeros(src.size(), src.depth());
+    frequencyToSpatial(image_frequency, image_real);
+
+    // remove negative value 将负值置为零
+    if (rm_negative) {
+        for (int i = 0; i < image_real.rows; i++) {
+            for (int j = 0; j < image_real.cols; j++) {
+                float m = image_real.at<float>(i, j);
+                if (m < 0) image_real.at<float>(i, j) = 0;
+            }
+        }
+    }
+
+    // 对幅值进行归一化操作，转换为 CV_8U [0, 255]
+    normalize(image_real, image_real, 0, 255, NORM_MINMAX, CV_8U);
+
+    // 裁剪至原尺寸
+    image_real = image_real(Rect(0, 0, src.cols, src.rows));
+
+    image_real.copyTo(dst);
+}
+
+void bestNotchFilter(Mat &src, Mat &dst, Mat &nbp_kernel, Size opt_ksize) {
+    if (src.empty()) {
+        throw invalid_argument("bestNotchFilter(): Input image is empty!");
+    }
+
+    if ((opt_ksize.width <= 0) || (opt_ksize.width % 2 == 0) || (opt_ksize.height <= 0) ||
+        (opt_ksize.height % 2 == 0)) {
+        string err = R"(bestNotchFilter(): Parameter Error! You should make sure opt_ksize is positive odd number!)";
+        throw invalid_argument(err);
+    }
+
+    // 通过 陷波带通滤波器 获取噪声图像
+    Mat noise;
+    frequencyFilter(src, noise, nbp_kernel);  // TODO: rm_negative 参数 待测试
+
+    int row_border = (opt_ksize.height - 1) / 2;
+    int col_border = (opt_ksize.width - 1) / 2;
+
+    Mat src_copy;
+    copyMakeBorder(src, src_copy, row_border, row_border, col_border, col_border, BORDER_REFLECT);
+    copyMakeBorder(noise, noise, row_border, row_border, col_border, col_border, BORDER_REFLECT);
+
+    Mat temp = Mat::zeros(src_copy.size(), src_copy.type());
+    vector<int> g_values{};
+    vector<int> n_values{};
+    vector<int> gn_values{};
+    vector<int> n2_values{};
+
+    for (int i = row_border; i < src_copy.rows - row_border; i++) {
+        for (int j = col_border; j < src_copy.cols - col_border; j++) {
+            g_values.clear();
+            n_values.clear();
+            gn_values.clear();
+            n2_values.clear();
+            for (int k = -row_border; k <= row_border; k++) {
+                for (int l = -col_border; l <= col_border; l++) {
+                    int g_temp = src_copy.at<uchar>(i + k, j + l);
+                    int n_temp = noise.at<uchar>(i + k, j + l);
+                    g_values.emplace_back(g_temp);
+                    n_values.emplace_back(n_temp);
+                    gn_values.emplace_back(g_temp * n_temp);
+                    n2_values.emplace_back(n_temp * n_temp);
+                }
+            }
+
+            // 计算参数
+            double g_mean = (double) accumulate(begin(g_values), end(g_values), 0) / (double) g_values.size();
+            double n_mean = (double) accumulate(begin(n_values), end(n_values), 0) / (double) n_values.size();
+            double gn_mean = (double) accumulate(begin(gn_values), end(gn_values), 0) / (double) gn_values.size();
+            double n2_mean = (double) accumulate(begin(n2_values), end(n2_values), 0) / (double) n2_values.size();
+
+            // 赋值
+            temp.at<uchar>(i, j) = (int) (src_copy.at<uchar>(i, j) -
+                                          ((gn_mean - g_mean * n_mean) / (n2_mean - n_mean * n_mean)) *
+                                          noise.at<uchar>(i, j));
+        }
+    }
+
+    Mat temp_roi = temp(Rect(col_border, row_border, src.cols, src.rows));
+
+    temp_roi.copyTo(dst);
+}

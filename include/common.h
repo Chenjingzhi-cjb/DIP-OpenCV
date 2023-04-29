@@ -4,6 +4,10 @@
 #include <iostream>
 #include <stdexcept>
 #include "opencv2/opencv.hpp"
+#include <cmath>
+#include <vector>
+#include <algorithm>
+#include <numeric>
 
 
 using namespace std;

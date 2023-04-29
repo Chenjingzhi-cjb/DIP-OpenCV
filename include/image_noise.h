@@ -1,10 +1,7 @@
 #ifndef DIP_OPENCV_IMAGE_NOISE_H
 #define DIP_OPENCV_IMAGE_NOISE_H
 
-#include <iostream>
-#include <stdexcept>
-#include <cmath>
-#include "opencv2/opencv.hpp"
+#include "common.h"
 #include "gray_transform.h"
 
 
