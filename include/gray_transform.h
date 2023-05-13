@@ -24,8 +24,8 @@ void bgrToGray(Mat &src, Mat &dst);
  *
  * 调用 Mat::normalize()
  *
- * @param src 输入图像；注意 depth 应为 CV_8U
- * @param dst 输出图像
+ * @param src 输入图像
+ * @param dst 输出图像；type: CV_8UC1
  * @return None
  */
 void grayLinearScaleCV_8U(Mat &src, Mat &dst);
@@ -35,8 +35,8 @@ void grayLinearScaleCV_8U(Mat &src, Mat &dst);
  *
  * 调用 Mat::convertTo()
  *
- * @param src 输入图像；注意 depth 应为 CV_8U
- * @param dst 输出图像
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像；type: CV_8UC1
  * @return None
  */
 void grayInvert(Mat &src, Mat &dst);
@@ -46,24 +46,22 @@ void grayInvert(Mat &src, Mat &dst);
  *        同时将输入图像中 范围较宽的高灰度值 映射为 范围较窄的灰度值级，
  *        即拓展图像中的暗像素值、压缩亮像素值。
  *
- * @param src 输入图像；注意 depth 应为 CV_8U
+ * @param src 输入图像；type: CV_8UC1
  * @param dst 输出图像
- * @param k 系数
  * @return None
  */
-void grayLog(Mat &src, Mat &dst, float k);
+void grayLog(Mat &src, Mat &dst);
 
 /**
  * @brief 灰度反对数变换，将输入图像中 范围较窄的高灰度值 映射为 范围较宽的灰度值级，
  *        同时将输入图像中 范围较宽的低灰度值 映射为 范围较窄的灰度值级，
  *        即拓展图像中的亮像素值、压缩暗像素值。
  *
- * @param src 输入图像；注意 depth 应为 CV_8U
+ * @param src 输入图像；type: CV_8UC1
  * @param dst 输出图像
- * @param k 系数
  * @return None
  */
-void grayAntiLog(Mat &src, Mat &dst, float k);
+void grayAntiLog(Mat &src, Mat &dst);
 
 /**
  * @brief 灰度伽马变换，也称幂律变换。当 0 < gamma < 1 时，
@@ -72,13 +70,12 @@ void grayAntiLog(Mat &src, Mat &dst, float k);
  *        即拓展图像中的暗像素值、压缩亮像素值；
  *        当 gamma > 1 时，效果相反。
  *
- * @param src 输入图像；注意 depth 应为 CV_8U
+ * @param src 输入图像；type: CV_8UC1
  * @param dst 输出图像
- * @param k 系数
  * @param gamma 指数；gamma > 0
  * @return None
  */
-void grayGamma(Mat &src, Mat &dst, float k, float gamma);
+void grayGamma(Mat &src, Mat &dst, float gamma);
 
 /**
  * @brief 灰度对比度拉伸，根据 (输入灰度，输出灰度) -> (0, 0), (r1, s1), (r2, s2), (255, 255)
@@ -151,6 +148,17 @@ void localEqualizeHist(Mat &src, Mat &dst, double clipLimit = 40.0, Size tileGri
  * @return None
  */
 void matchHist(Mat &src, Mat &dst, Mat &refer);
+
+/**
+ * @brief 阴影校正
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param k1 卷积核尺寸 与 图像尺寸 的比例系数；取值范围为 (0, 0.5]，系数越大，模糊程度越高
+ * @param k2 卷积核尺寸 与 sigma 的比例系数；取值范围为 (0, 6]
+ * @return None
+ */
+void shadingCorrection(Mat &src, Mat &dst, float k1 = 0.25, float k2 = 6);
 
 
 #endif //DIP_OPENCV_GRAY_TRANSFORM_H

@@ -17,11 +17,11 @@ void grayLinearScaleCV_8U(Mat &src, Mat &dst);  // 灰度线性缩放，缩放�
 
 void grayInvert(Mat &src, Mat &dst);  // 灰度反转（属于灰度线性变换）
 
-void grayLog(Mat &src, Mat &dst, float k);  // 灰度对数变换
+void grayLog(Mat &src, Mat &dst);  // 灰度对数变换
 
-void grayAntiLog(Mat &src, Mat &dst, float k);  // 灰度反对数变换
+void grayAntiLog(Mat &src, Mat &dst);  // 灰度反对数变换
 
-void grayGamma(Mat &src, Mat &dst, float k, float gamma);  // 灰度伽马变换，也称幂律变换
+void grayGamma(Mat &src, Mat &dst, float gamma);  // 灰度伽马变换，也称幂律变换
 
 void grayContrastStretch(Mat &src, Mat &dst, uint r1, uint s1, uint r2, uint s2);  // 灰度对比度拉伸
 
@@ -36,6 +36,8 @@ Mat grayHistogram(Mat &src, Size size = Size(512, 400), const Scalar &color = Sc
 void localEqualizeHist(Mat &src, Mat &dst, double clipLimit = 40.0, Size tileGridSize = Size(8, 8));  // 局部直方图均衡化
 
 void matchHist(Mat &src, Mat &dst, Mat &refer);  // 直方图规定化
+
+void shadingCorrection(Mat &src, Mat &dst, float k1 = 0.25, float k2 = 6);  // 阴影校正
 ```
 
 - 空间滤波 **spatial_filter.h**
@@ -46,8 +48,6 @@ void linearSpatialFilter(Mat &src, Mat &dst, Mat &kernel);  // 线性空间滤�
 void smoothSpatialFilterBox(Mat &src, Mat &dst, Size ksize, Point anchor = Point(-1, -1), bool normalize = true, int borderType = BORDER_DEFAULT);  // 盒式平滑（低通）空间滤波
 
 void smoothSpatialFilterGauss(Mat &src, Mat &dst, Size ksize, double sigmaX, double sigmaY = 0, int borderType = BORDER_DEFAULT);  // 高斯平滑（低通）空间滤波
-
-void shadingCorrection(Mat &src, Mat &dst, float k1, float k2);  // 阴影校正 TODO:
 
 void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage = 50);  // 统计排序（非线性）滤波器
 
@@ -154,5 +154,29 @@ void adaptiveMedianFilter(Mat &src, Mat &dst, int max_ksize);  // 自适应中�
 
 ```cpp
 void bestNotchFilter(Mat &src, Mat &dst, Mat &nbp_kernel, Size opt_ksize);  // 最优陷波滤波
+```
+
+### 6. 彩色图像处理
+
+- **color_process.h**
+
+```cpp
+vector<Mat> colorChannelSpilt(Mat &src);  // 彩色通道分离
+
+void bgrToHsi(Mat &src, Mat &dst);  // BGR 转换为 HSI
+
+void hsiToBgr(Mat &src, Mat &dst);  // HSI 转换为 BGR
+
+void pseudoColor(Mat &src, Mat &dst, ColormapTypes color = COLORMAP_JET);  // 伪彩色处理
+
+void complementaryColor(Mat &src, Mat &dst);  // 补色处理，即彩色反转
+
+void colorLayering(Mat &src, Mat &dst, const Vec3b& color_bgr, double range_r = 120);  // 彩色分层
+
+// 彩色图像（RGB / HSI）的校正（对数变换 / 反对数变换 / 伽马变换）
+
+void colorEqualizeHist(Mat &src, Mat &dst);  // 彩色全局直方图均衡化（不建议使用）
+
+// 彩色图像（RGB / HSI）的平滑和锐化
 ```
 

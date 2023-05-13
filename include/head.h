@@ -6,6 +6,7 @@
 #include "spatial_filter.h"
 #include "frequency_filter.h"
 #include "image_noise.h"
+#include "color_process.h"
 
 using namespace std;
 using namespace cv;

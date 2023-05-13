@@ -57,16 +57,6 @@ void smoothSpatialFilterGauss(Mat &src, Mat &dst, Size ksize, double sigmaX, dou
                               int borderType = BORDER_DEFAULT);
 
 /**
- * @brief 阴影校正 TODO:
- *
- * @param src 输入图像；注意 depth 应为 CV_8U
- * @param dst 输出图像
- * @param k1 模糊处理比例系数；取值范围为 (0, 0.5]，系数越大，模糊程度越高
- * @return None
- */
-void shadingCorrection(Mat &src, Mat &dst, float k1, float k2);
-
-/**
  * @brief 统计排序（非线性）滤波器
  *
  * 中值滤波调用 cv::medianBlur()

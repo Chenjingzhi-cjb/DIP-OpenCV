@@ -25,55 +25,49 @@ void grayInvert(Mat &src, Mat &dst) {
     src.convertTo(dst, CV_8U, -1, 255);
 }
 
-void grayLog(Mat &src, Mat &dst, float k) {
+void grayLog(Mat &src, Mat &dst) {
     if (src.empty()) {
         throw invalid_argument("grayLog(): Input image is empty!");
     }
 
-    // CV_8U -> [0, 255]
-    int upper_limit = 255;
+    Mat temp(src.size(), CV_32FC1);
 
-    double max_value = k * log10(1 + upper_limit);
-    if (max_value == 0) return;
-    double d = upper_limit / max_value;
-
-    Mat temp = Mat::zeros(src.size(), src.depth());
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
-            // 进行 对数变换 并 线性缩放至 [0, 255]
-            temp.at<uchar>(r, c) = uchar(k * log10(1 + m) * d);
+            // 进行 对数变换
+            temp.at<float>(r, c) = (float) log10(1 + m);
         }
     }
+
+    // 线性缩放至 [0, 255]
+    normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }
 
-void grayAntiLog(Mat &src, Mat &dst, float k) {
+void grayAntiLog(Mat &src, Mat &dst) {
     if (src.empty()) {
         throw invalid_argument("grayAntiLog(): Input image is empty!");
     }
 
-    // CV_8U -> [0, 255]
-    int upper_limit = 255;
+    Mat temp(src.size(), CV_32FC1);
 
-    double max_value = k * (pow(10, upper_limit) - 1);
-    if (max_value == 0) return;
-    double d = upper_limit / max_value;
-
-    Mat temp = Mat::zeros(src.size(), src.depth());
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
-            // 进行 反对数变换 并 线性缩放至 [0, 255]
-            temp.at<uchar>(r, c) = uchar(k * (pow(10, m) - 1) * d);
+            // 进行 反对数变换
+            temp.at<float>(r, c) = (float) pow(10, (float) m / 255) - 1;
         }
     }
+
+    // 线性缩放至 [0, 255]
+    normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }
 
-void grayGamma(Mat &src, Mat &dst, float k, float gamma) {
+void grayGamma(Mat &src, Mat &dst, float gamma) {
     if (src.empty()) {
         throw invalid_argument("grayGamma(): Input image is empty!");
     }
@@ -83,21 +77,18 @@ void grayGamma(Mat &src, Mat &dst, float k, float gamma) {
         throw invalid_argument(err);
     }
 
-    // CV_8U -> [0, 255]
-    int upper_limit = 255;
+    Mat temp(src.size(), CV_32FC1);
 
-    double max_value = k * pow(upper_limit, gamma);
-    if (max_value == 0) return;
-    double d = upper_limit / max_value;
-
-    Mat temp = Mat::zeros(src.size(), src.depth());
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
-            // 进行 伽马变换 并 线性缩放至 [0, 255]
-            temp.at<uchar>(r, c) = uchar(k * pow(m, gamma) * d);
+            // 进行 伽马变换
+            temp.at<float>(r, c) = (float) pow(m, gamma);
         }
     }
+
+    // 线性缩放至 [0, 255]
+    normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }
@@ -265,7 +256,7 @@ void localEqualizeHist(Mat &src, Mat &dst, double clipLimit, Size tileGridSize) 
     if (src.empty()) {
         throw invalid_argument("localEqualizeHist(): Input src image is empty!");
     }
-    
+
     Ptr<CLAHE> clahe = createCLAHE(clipLimit, tileGridSize);
     clahe->apply(src, dst);
 }
@@ -329,4 +320,48 @@ void matchHist(Mat &src, Mat &dst, Mat &refer) {
     LUT(src_equ, lut, matched);
 
     matched.copyTo(dst);
+}
+
+void shadingCorrection(Mat &src, Mat &dst, float k1, float k2) {
+    if (src.empty()) {
+        throw invalid_argument("shadingCorrection(): Input image is empty!");
+    }
+
+    if (k1 <= 0 || k1 > 0.5) {
+        string err = R"(shadingCorrection(): Parameter Error! You should make sure "0 < k1 <= 0.5"!)";
+        throw invalid_argument(err);
+    }
+
+    if (k2 <= 0 || k2 > 6) {
+        string err = R"(shadingCorrection(): Parameter Error! You should make sure "0 < k2 <= 6"!)";
+        throw invalid_argument(err);
+    }
+
+    // 计算卷积核参数
+    Size src_size = src.size();
+
+    int ksize_width = (int) ((float) src_size.width * k1);
+    if (ksize_width % 2 == 0) ksize_width += 1;
+
+    int ksize_height = (int) ((float) src_size.height * k1);
+    if (ksize_height % 2 == 0) ksize_height += 1;
+
+    float sigma_x = (float) ksize_width / k2;
+    float sigma_y = (float) ksize_height / k2;
+
+    // 1. 通过高斯滤波获取阴影
+    Mat shading(src_size, src.type());
+    GaussianBlur(src, shading, Size(ksize_width, ksize_height), sigma_x, sigma_y);
+
+    // 2. 阴影校正
+    Mat temp(src_size, CV_32FC1);
+    for (int r = 0; r < src.rows; ++r) {
+        for (int c = 0; c < src.cols; ++c) {
+            temp.at<float>(r, c) = (float) src.at<uchar>(r, c) / (float) shading.at<uchar>(r, c);
+        }
+    }
+
+    normalize(src, dst, 0, 255, NORM_MINMAX, CV_8U);
+
+    temp.copyTo(dst);
 }

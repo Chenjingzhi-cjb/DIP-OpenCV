@@ -43,41 +43,6 @@ void smoothSpatialFilterGauss(Mat &src, Mat &dst, Size ksize, double sigmaX, dou
     GaussianBlur(src, dst, ksize, sigmaX, sigmaY, borderType);
 }
 
-void shadingCorrection(Mat &src, Mat &dst, float k1, float k2) {  // TODO:
-    if (src.empty()) {
-        throw invalid_argument("shadingCorrection(): Input image is empty!");
-    }
-
-    if (k1 <= 0 || k1 > 0.5) {
-        string err = R"(shadingCorrection(): Parameter Error! You should make sure "0 < k <= 0.5"!)";
-        throw invalid_argument(err);
-    }
-
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", src);
-
-    Size src_size = src.size();
-
-    // 计算卷积核参数
-    int ksize_width = (int) ((float) src_size.width * k1);
-    if (ksize_width % 2 == 0) ksize_width += 1;
-
-    int ksize_height = (int) ((float) src_size.height * k1);
-    if (ksize_height % 2 == 0) ksize_height += 1;
-
-    // 1. 通过高斯滤波获取阴影
-    Mat shading = Mat::zeros(src_size, src.depth());
-    GaussianBlur(src, shading, Size(ksize_width, ksize_height), (float) ksize_width / k2, (float) ksize_height / k2);
-
-    namedWindow("shading", WINDOW_AUTOSIZE);
-    imshow("shading", shading);
-
-    // 2. 阴影校正
-    Mat temp = Mat::zeros(src_size, src.depth());
-
-    waitKey(0);
-}
-
 void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage) {
     if (src.empty()) {
         throw invalid_argument("orderStatisticsFilter(): Input image is empty!");
