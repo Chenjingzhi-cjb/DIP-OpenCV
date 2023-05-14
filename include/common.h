@@ -24,5 +24,13 @@ using namespace cv;
  */
 void printImageData(Mat &image, Size shrink_size = Size(64, 64), int preview_unit = 3);
 
+/**
+ * @brief 视频图像遍历
+ *
+ * @param video 视频对象
+ * @return None
+ */
+void videoTraverse(VideoCapture &video);
+
 
 #endif //DIP_OPENCV_COMMON_H

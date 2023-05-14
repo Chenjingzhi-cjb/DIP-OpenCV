@@ -60,17 +60,17 @@ void pseudoColor(Mat &src, Mat &dst, ColormapTypes color = COLORMAP_JET);
 void complementaryColor(Mat &src, Mat &dst);
 
 /**
- * @brief 彩色分层
+ * @brief 彩色分层（球形)
  *
  * @param src 输入图像；type: CV_8UC3
  * @param dst 输出图像
- * @param color_bgr 分层色彩值
- * @param range_r 分层色彩的范围
+ * @param color_center 分层色彩中心值
+ * @param range_radius 分层范围半径值
  * @return None
  */
-void colorLayering(Mat &src, Mat &dst, const Vec3b& color_bgr, double range_r = 120);
+void colorLayering(Mat &src, Mat &dst, const Vec3b& color_center, double range_radius = 120);
 
-// 彩色图像（RGB / HSI）的校正（对数变换 / 反对数变换 / 伽马变换）
+// 彩色图像（RGB / HSI）的校正（对数变换 / 反对数变换 / 伽马变换）：参考灰度
 
 /**
  * @brief 彩色全局直方图均衡化（不建议使用）
@@ -82,8 +82,6 @@ void colorLayering(Mat &src, Mat &dst, const Vec3b& color_bgr, double range_r = 
  * @return None
  */
 void colorEqualizeHist(Mat &src, Mat &dst);
-
-// 彩色图像（RGB / HSI）的平滑和锐化
 
 
 #endif //DIP_OPENCV_COLOR_PROCESS_H

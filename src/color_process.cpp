@@ -108,7 +108,7 @@ void complementaryColor(Mat &src, Mat &dst) {
     src.convertTo(dst, CV_8U, -1, 255);
 }
 
-void colorLayering(Mat &src, Mat &dst, const Vec3b &color_bgr, double range_r) {
+void colorLayering(Mat &src, Mat &dst, const Vec3b &color_center, double range_radius) {
     if (src.empty()) {
         throw invalid_argument("colorLayering(): Input image is empty!");
     }
@@ -119,10 +119,10 @@ void colorLayering(Mat &src, Mat &dst, const Vec3b &color_bgr, double range_r) {
         for (int j = 0; j < src.cols; ++j) {
             Vec3b m = src.at<Vec3b>(i, j);
 
-            double dis = pow(color_bgr[0] - m[0], 2) + pow(color_bgr[1] - m[1], 2) + pow(color_bgr[2] - m[2], 2);
-            if (dis > pow(range_r, 2)) {
+            double dis = pow(color_center[0] - m[0], 2) + pow(color_center[1] - m[1], 2) + pow(color_center[2] - m[2], 2);
+            if (dis > pow(range_radius, 2)) {
                 temp.at<Vec3b>(i, j) = Vec3b(0, 0, 0);
-            } else {  // dis <= pow(range_r, 2)
+            } else {  // dis <= pow(range_radius, 2)
                 temp.at<Vec3b>(i, j) = m;
             }
         }

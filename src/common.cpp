@@ -103,3 +103,25 @@ void printImageData(Mat &image, Size shrink_size, int preview_unit) {
 
     cout << "----------------------------------------------------------------------------" << endl;
 }
+
+void videoTraverse(VideoCapture &video) {
+    if (!video.isOpened()) {
+        throw invalid_argument("videoTraverse(): Video loading error!");
+    }
+
+    // 获取视频信息
+    int frame_width = static_cast<int>(video.get(CAP_PROP_FRAME_WIDTH));
+    int frame_height = static_cast<int>(video.get(CAP_PROP_FRAME_HEIGHT));
+    int frame_count = static_cast<int>(video.get(CAP_PROP_FRAME_COUNT));
+    cout << "Video Info: " << endl;
+    cout << "  frame width: " << frame_width << endl;
+    cout << "  frame height: " << frame_height << endl;
+    cout << "  frame count: " << frame_count << endl;
+
+    // 遍历帧
+    for (int i = 0; i < frame_count; i++) {
+        Mat frame;
+        video >> frame;
+        // ...
+    }
+}

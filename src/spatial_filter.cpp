@@ -49,7 +49,7 @@ void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("orderStatisticsFilter(): Input image's type error! It should be CV_8UC1");
+        throw invalid_argument("orderStatisticsFilter(): Input image's type error! It should be CV_8UC1!");
     }
 
     if (ksize <= 0 || ksize % 2 == 0) {
@@ -62,20 +62,20 @@ void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage) {
         throw invalid_argument(err);
     }
 
-    // 中值滤波器
+    // --- 中值滤波 ---
     if (percentage == 50) {
         medianBlur(src, dst, ksize);
         return;
     }
 
-    // 其他位置
+    // --- 其他位置 ---
     int border = (ksize - 1) / 2;
+    int index = ksize * ksize * percentage / 101;  // 101 避免数组越界
 
     Mat src_copy;
     copyMakeBorder(src, src_copy, border, border, border, border, BORDER_REFLECT);
 
-    Mat temp = Mat::zeros(src_copy.size(), src_copy.type());
-    int index = ksize * ksize * percentage / 101;  // 101 避免数组越界
+    Mat temp(src_copy.size(), src_copy.type());
     vector<int> values{};
 
     for (int i = border; i < src_copy.rows - border; i++) {
@@ -91,9 +91,9 @@ void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage) {
         }
     }
 
-    Mat temp_roi = temp(Rect(border, border, src.cols, src.rows));
+    temp = temp(Rect(border, border, src.cols, src.rows));
 
-    temp_roi.copyTo(dst);
+    temp.copyTo(dst);
 }
 
 void sharpenSpatialFilterLaplace(Mat &src, Mat &dst, int ksize, double scale, double delta, int borderType) {
@@ -115,15 +115,15 @@ void sharpenSpatialFilterTemplate(Mat &src, Mat &dst, Size smooth_ksize, float k
     }
 
     // 1. 获取模糊图像
-    Mat smooth_image = Mat::zeros(src.size(), src.depth());
+    Mat smooth_image(src.size(), src.type());
     GaussianBlur(src, smooth_image, smooth_ksize, (smooth_ksize.width / 6.0), (smooth_ksize.height / 6.0));
 
     // 2. 原图像 - 模糊图像 = 模板
-    Mat template_image = Mat::zeros(src.size(), src.depth());
+    Mat template_image(src.size(), src.type());
     subtract(src, smooth_image, template_image);
 
     // 3. 原图像 + k * 模板 = 结果图像
-    Mat result_image = Mat::zeros(src.size(), src.depth());
+    Mat result_image(src.size(), src.type());
     addWeighted(src, 1, template_image, k, 0, result_image);
 
     result_image.copyTo(dst);
@@ -403,8 +403,8 @@ void adaptiveLocalFilter(Mat &src, Mat &dst, Size ksize) {
 
             // 计算参数
             double mean_s = (double) accumulate(begin(values), end(values), 0) / (double) values.size();
-            double sigma_s  = 0;
-            for_each (begin(values), end(values), [&](const int d) {
+            double sigma_s = 0;
+            for_each(begin(values), end(values), [&](const int d) {
                 sigma_s += pow(d - mean_s, 2);
             });
             sigma_s /= (double) values.size();
