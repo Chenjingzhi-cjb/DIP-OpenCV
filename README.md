@@ -1,4 +1,4 @@
-# DIP-OpenCV：数字图像处理 OpenCV_Cpp
+# DIP-OpenCV: 数字图像处理 OpenCV_Cpp
 
 本项目基于冈萨雷斯的《数字图像处理》(第四版)，使用了 OpenCV_Cpp 对该书的一些理论知识进行了代码实现。
 
@@ -176,5 +176,31 @@ void colorLayering(Mat &src, Mat &dst, const Vec3b& color_center, double range_r
 // 彩色图像（RGB / HSI）的校正（对数变换 / 反对数变换 / 伽马变换）：参考灰度
 
 void colorEqualizeHist(Mat &src, Mat &dst);  // 彩色全局直方图均衡化（不建议使用）
+```
+
+### 9. 形态学图像处理
+
+- **morphological.h**
+
+```cpp
+// OpenCV Mat getStructuringElement(int shape, Size ksize, Point anchor = Point(-1,-1));  构建（形态学）结构元
+
+void morphologyErode(Mat &src, Mat &dst, const Mat &kernel);  // 形态学腐蚀
+
+void morphologyDilate(Mat &src, Mat &dst, const Mat &kernel);  // 形态学膨胀
+
+void morphologyOpen(Mat &src, Mat &dst, const Mat &kernel);  // 形态学开运算
+
+void morphologyClose(Mat &src, Mat &dst, const Mat &kernel);  // 形态学闭运算
+
+void morphologyHMT(Mat &src, Mat &dst, const Mat &fore_kernel, const Mat &back_kernel);  // 形态学击中击不中变换
+
+void boundaryExtract(Mat &src, Mat &dst, int size);  // 边界提取
+
+void holeFill(Mat &src, Mat &dst, Mat &start);  // 孔洞填充
+
+void extractConnected(Mat &src, Mat &dst);  // 提取连通分量
+
+// 凸壳、细化、粗化、骨架、裁剪
 ```
 

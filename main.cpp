@@ -3,21 +3,34 @@
 
 
 int main() {
-    Mat image = imread(R"(..\image\lena.png)");
-
-//    Mat image_gray;
-//    bgrToGray(image, image_gray);
+    Mat src = (Mat_<uchar>(6, 6)
+            << 0, 0, 0, 0, 0, 0,
+            0, 1, 1, 0, 1, 0,
+            1, 1, 1, 0, 1, 0,
+            0, 1, 0, 0, 0, 0,
+            0, 1, 0, 1, 1, 1,
+            0, 0, 0, 0, 0, 0);
 
     Mat dst;
-    complementaryColor(image, dst);
+    extractConnected(src, dst);
 
-    namedWindow("raw", WINDOW_AUTOSIZE);
-    imshow("raw", image);
-//    namedWindow("gray", WINDOW_AUTOSIZE);
-//    imshow("gray", image_gray);
-    namedWindow("dst", WINDOW_AUTOSIZE);
-    imshow("dst", dst);
-    waitKey(0);
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            int m = src.at<uchar>(i, j);
+            std::cout << m << ", ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            int m = dst.at<uchar>(i, j);
+            std::cout << m << ", ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
 
     return 0;
 }
