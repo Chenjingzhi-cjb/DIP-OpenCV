@@ -22,7 +22,7 @@ using namespace cv;
  * @param preview_unit 图像预览的单位元素个数
  * @return None
  */
-void printImageData(Mat &image, Size shrink_size = Size(64, 64), int preview_unit = 3);
+void printImageData(const Mat &image, Size shrink_size = Size(64, 64), int preview_unit = 3);
 
 /**
  * @brief 视频图像遍历

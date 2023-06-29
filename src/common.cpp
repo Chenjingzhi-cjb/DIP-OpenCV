@@ -1,43 +1,44 @@
 #include "common.h"
 
 
-void printImageData(Mat &image, Size shrink_size, int preview_unit) {
+void printImageData(const Mat &image, Size shrink_size, int preview_unit) {
     if (image.empty()) {
         throw invalid_argument("printImageData(): Input image is empty!");
     }
 
-    resize(image, image, shrink_size);
+    Mat temp = image.clone();
+    resize(temp, temp, shrink_size);
 
     cout << "-------------------------------- Image Data --------------------------------" << endl;
 
-    cout << "Size: " << image.size() << endl;
-    cout << "Depth: " << image.depth() << endl;
-    cout << "Channels: " << image.channels() << endl;
+    cout << "Size: " << temp.size() << endl;
+    cout << "Depth: " << temp.depth() << endl;
+    cout << "Channels: " << temp.channels() << endl;
 
-    Scalar sum_value = sum(image);
+    Scalar sum_value = sum(temp);
     cout << "Sum value: " << sum_value << endl;
-    Scalar mean_value = mean(image);
+    Scalar mean_value = mean(temp);
     cout << "Mean value: " << mean_value << endl;
 
     cout << "Image preview: " << endl;
     for (int i = 0; i < preview_unit; i++) {
         cout << "  ";
         for (int j = 0; j < preview_unit; j++) {
-            int m = image.at<uchar>(i, j);
+            int m = temp.at<uchar>(i, j);
             cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
             cout << "..." << "\t";
         }
         for (int j = -1 * (preview_unit / 2); j <= 1 * (preview_unit / 2); j++) {
-            int m = image.at<uchar>(i, image.cols / 2 + j);
+            int m = temp.at<uchar>(i, temp.cols / 2 + j);
             cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
             cout << "..." << "\t";
         }
         for (int j = preview_unit; j > 0; j--) {
-            int m = image.at<uchar>(i, image.cols - j);
+            int m = temp.at<uchar>(i, temp.cols - j);
             cout << m << "\t";
         }
         cout << endl;
@@ -52,21 +53,21 @@ void printImageData(Mat &image, Size shrink_size, int preview_unit) {
     for (int i = -1 * (preview_unit / 2); i <= 1 * (preview_unit / 2); i++) {
         cout << "  ";
         for (int j = 0; j < preview_unit; j++) {
-            int m = image.at<uchar>(image.rows / 2 + i, j);
+            int m = temp.at<uchar>(temp.rows / 2 + i, j);
             cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
             cout << "..." << "\t";
         }
         for (int j = -1 * (preview_unit / 2); j <= 1 * (preview_unit / 2); j++) {
-            int m = image.at<uchar>(image.rows / 2 + i, image.cols / 2 + j);
+            int m = temp.at<uchar>(temp.rows / 2 + i, temp.cols / 2 + j);
             cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
             cout << "..." << "\t";
         }
         for (int j = preview_unit; j > 0; j--) {
-            int m = image.at<uchar>(image.rows / 2 + i, image.cols - j);
+            int m = temp.at<uchar>(temp.rows / 2 + i, temp.cols - j);
             cout << m << "\t";
         }
         cout << endl;
@@ -81,21 +82,21 @@ void printImageData(Mat &image, Size shrink_size, int preview_unit) {
     for (int i = preview_unit; i > 0; i--) {
         cout << "  ";
         for (int j = 0; j < preview_unit; j++) {
-            int m = image.at<uchar>(image.rows - i, j);
+            int m = temp.at<uchar>(temp.rows - i, j);
             cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
             cout << "..." << "\t";
         }
         for (int j = -1 * (preview_unit / 2); j <= 1 * (preview_unit / 2); j++) {
-            int m = image.at<uchar>(image.rows - i, image.cols / 2 + j);
+            int m = temp.at<uchar>(temp.rows - i, temp.cols / 2 + j);
             cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
             cout << "..." << "\t";
         }
         for (int j = preview_unit; j > 0; j--) {
-            int m = image.at<uchar>(image.rows - i, image.cols - j);
+            int m = temp.at<uchar>(temp.rows - i, temp.cols - j);
             cout << m << "\t";
         }
         cout << endl;

@@ -183,6 +183,12 @@ void colorEqualizeHist(Mat &src, Mat &dst);  // 彩色全局直方图均衡化�
 - **morphological.h**
 
 ```cpp
+void grayToBinary(Mat &src, Mat &dst, double thresh, double maxval, int type);  // GRAY 转换为 Binary (二值化)
+
+uchar getBinaryMaxval(Mat &src);  // 获取二值图像的最大值
+
+void binaryInvert(Mat &src, Mat &dst);  // 二值反转
+
 // OpenCV Mat getStructuringElement(int shape, Size ksize, Point anchor = Point(-1,-1));  构建（形态学）结构元
 
 void morphologyErode(Mat &src, Mat &dst, const Mat &kernel);  // 形态学腐蚀
@@ -202,5 +208,17 @@ void holeFill(Mat &src, Mat &dst, Mat &start);  // 孔洞填充
 void extractConnected(Mat &src, Mat &dst);  // 提取连通分量
 
 // 凸壳、细化、粗化、骨架、裁剪
+
+void erodeReconstruct(Mat &src, const Mat &tmpl, Mat &dst);  // 腐蚀形态学重建
+
+void dilateReconstruct(Mat &src, const Mat &tmpl, Mat &dst);  // 膨胀形态学重建
+
+void openReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_times = 1);  // 开运算形态学重建
+
+void closeReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_times = 1);  // 闭运算形态学重建
+
+void holeFill(Mat &src, Mat &dst);  // 孔洞填充（自动版）
+
+void borderClear(Mat &src, Mat &dst);  // 边界清除
 ```
 

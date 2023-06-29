@@ -3,34 +3,22 @@
 
 
 int main() {
-    Mat src = (Mat_<uchar>(6, 6)
-            << 0, 0, 0, 0, 0, 0,
-            0, 1, 1, 0, 1, 0,
-            1, 1, 1, 0, 1, 0,
-            0, 1, 0, 0, 0, 0,
-            0, 1, 0, 1, 1, 1,
-            0, 0, 0, 0, 0, 0);
+    Mat image = imread("../image/text-touching-border-half.tif", IMREAD_GRAYSCALE);
+
+    Mat image_binary;
+    threshold(image, image_binary, 127, 1, THRESH_BINARY);
 
     Mat dst;
-    extractConnected(src, dst);
+    borderClear(image_binary, dst);
 
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 6; j++) {
-            int m = src.at<uchar>(i, j);
-            std::cout << m << ", ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
+    image_binary.convertTo(image_binary, image_binary.depth(), 255, 0);
+    dst.convertTo(dst, dst.depth(), 255, 0);
 
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 6; j++) {
-            int m = dst.at<uchar>(i, j);
-            std::cout << m << ", ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
+    namedWindow("img", WINDOW_NORMAL);
+    imshow("img", image_binary);
+    namedWindow("dst", WINDOW_NORMAL);
+    imshow("dst", dst);
+    waitKey(0);
 
     return 0;
 }
