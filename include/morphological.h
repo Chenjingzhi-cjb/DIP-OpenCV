@@ -104,6 +104,42 @@ void morphologyClose(Mat &src, Mat &dst, const Mat &kernel);
 void morphologyHMT(Mat &src, Mat &dst, const Mat &fore_kernel, const Mat &back_kernel);
 
 /**
+ * @brief 形态学梯度
+ *
+ * 调用 cv::morphologyEx(cv::MORPH_GRADIENT)
+ *
+ * @param src 输入图像；type: CV_8UC1，二值图或灰度图
+ * @param dst 输出图像
+ * @param kernel 结构元；可以使用 #getStructuringElement 创建
+ * @return None
+ */
+void morphologyGradient(Mat &src, Mat &dst, const Mat &kernel);
+
+/**
+ * @brief 形态学顶帽变换
+ *
+ * 调用 cv::morphologyEx(cv::MORPH_TOPHAT)
+ *
+ * @param src 输入图像；type: CV_8UC1，二值图或灰度图
+ * @param dst 输出图像
+ * @param kernel 结构元；可以使用 #getStructuringElement 创建
+ * @return None
+ */
+void morphologyTophat(Mat &src, Mat &dst, const Mat &kernel);
+
+/**
+ * @brief 形态学底帽变换
+ *
+ * 调用 cv::morphologyEx(cv::MORPH_BLACKHAT)
+ *
+ * @param src 输入图像；type: CV_8UC1，二值图或灰度图
+ * @param dst 输出图像
+ * @param kernel 结构元；可以使用 #getStructuringElement 创建
+ * @return None
+ */
+void morphologyBlackhat(Mat &src, Mat &dst, const Mat &kernel);
+
+/**
  * @brief 边界提取
  *
  * @param src 输入图像；type: CV_8UC1，二值图
@@ -137,7 +173,7 @@ void extractConnected(Mat &src, Mat &dst);
 /**
  * @brief 腐蚀形态学重建
  *
- * @param src 输入图像（标记图像）；type: CV_8UC1，二值图
+ * @param src 输入图像（标记图像）；type: CV_8UC1，二值图或灰度图
  * @param tmpl 模板图像；type: CV_8UC1，二值图或灰度图
  * @param dst 输出图像
  * @return None
@@ -147,7 +183,7 @@ void erodeReconstruct(Mat &src, const Mat &tmpl, Mat &dst);
 /**
  * @brief 膨胀形态学重建
  *
- * @param src 输入图像（标记图像）；type: CV_8UC1，二值图
+ * @param src 输入图像（标记图像）；type: CV_8UC1，二值图或灰度图
  * @param tmpl 模板图像；type: CV_8UC1，二值图或灰度图
  * @param dst 输出图像
  * @return None
@@ -157,7 +193,7 @@ void dilateReconstruct(Mat &src, const Mat &tmpl, Mat &dst);
 /**
  * @brief 开运算形态学重建
  *
- * @param src 输入图像；type: CV_8UC1，二值图
+ * @param src 输入图像；type: CV_8UC1，二值图或灰度图
  * @param dst 输出图像
  * @param erode_kernel 腐蚀结构元；可以使用 #getStructuringElement 创建
  * @param erode_times 腐蚀次数
@@ -168,13 +204,35 @@ void openReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_time
 /**
  * @brief 闭运算形态学重建
  *
- * @param src 输入图像；type: CV_8UC1，二值图
+ * @param src 输入图像；type: CV_8UC1，二值图或灰度图
  * @param dst 输出图像
  * @param dilate_kernel 膨胀结构元；可以使用 #getStructuringElement 创建
  * @param dilate_times 膨胀次数
  * @return None
  */
 void closeReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_times = 1);
+
+/**
+ * @brief 顶帽形态学重建
+ *
+ * @param src 输入图像；type: CV_8UC1，二值图或灰度图
+ * @param dst 输出图像
+ * @param erode_kernel 腐蚀结构元；可以使用 #getStructuringElement 创建
+ * @param erode_times 腐蚀次数
+ * @return None
+ */
+void tophatReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_times = 1);
+
+/**
+ * @brief 底帽形态学重建
+ *
+ * @param src 输入图像；type: CV_8UC1，二值图或灰度图
+ * @param dst 输出图像
+ * @param dilate_kernel 膨胀结构元；可以使用 #getStructuringElement 创建
+ * @param dilate_times 膨胀次数
+ * @return None
+ */
+void blackhatReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_times = 1);
 
 /**
  * @brief 孔洞填充（自动版）

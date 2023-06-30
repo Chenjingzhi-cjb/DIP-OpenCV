@@ -201,6 +201,12 @@ void morphologyClose(Mat &src, Mat &dst, const Mat &kernel);  // 形态学闭运
 
 void morphologyHMT(Mat &src, Mat &dst, const Mat &fore_kernel, const Mat &back_kernel);  // 形态学击中击不中变换
 
+void morphologyGradient(Mat &src, Mat &dst, const Mat &kernel);  // 形态学梯度
+
+void morphologyTophat(Mat &src, Mat &dst, const Mat &kernel);  // 形态学顶帽变换
+
+void morphologyBlackhat(Mat &src, Mat &dst, const Mat &kernel);  // 形态学底帽变换
+
 void boundaryExtract(Mat &src, Mat &dst, int size);  // 边界提取
 
 void holeFill(Mat &src, Mat &dst, Mat &start);  // 孔洞填充
@@ -216,6 +222,10 @@ void dilateReconstruct(Mat &src, const Mat &tmpl, Mat &dst);  // 膨胀形态学
 void openReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_times = 1);  // 开运算形态学重建
 
 void closeReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_times = 1);  // 闭运算形态学重建
+
+void tophatReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_times = 1);  // 顶帽形态学重建
+
+void blackhatReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_times = 1);  // 底帽形态学重建
 
 void holeFill(Mat &src, Mat &dst);  // 孔洞填充（自动版）
 

@@ -7,7 +7,7 @@ void grayToBinary(Mat &src, Mat &dst, double thresh, double maxval, int type) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("grayToBinary(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("grayToBinary(): Input src image's type error! It should be CV_8UC1!");
     }
 
     threshold(src, dst, thresh, maxval, type);
@@ -19,7 +19,7 @@ uchar getBinaryMaxval(Mat &src) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("getBinaryMaxval(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("getBinaryMaxval(): Input src image's type error! It should be CV_8UC1!");
     }
 
     for (int r = 0; r < src.rows; ++r) {
@@ -40,7 +40,7 @@ void binaryInvert(Mat &src, Mat &dst) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("binaryInvert(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("binaryInvert(): Input src image's type error! It should be CV_8UC1!");
     }
 
     Mat temp = getBinaryMaxval(src) - src;
@@ -54,7 +54,7 @@ void morphologyErode(Mat &src, Mat &dst, const Mat &kernel) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("morphologyErode(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("morphologyErode(): Input src image's type error! It should be CV_8UC1!");
     }
 
     erode(src, dst, kernel);
@@ -67,7 +67,7 @@ void morphologyDilate(Mat &src, Mat &dst, const Mat &kernel) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("morphologyDilate(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("morphologyDilate(): Input src image's type error! It should be CV_8UC1!");
     }
 
     dilate(src, dst, kernel);
@@ -80,7 +80,7 @@ void morphologyOpen(Mat &src, Mat &dst, const Mat &kernel) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("morphologyOpen(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("morphologyOpen(): Input src image's type error! It should be CV_8UC1!");
     }
 
     morphologyEx(src, dst, MORPH_OPEN, kernel);
@@ -92,7 +92,7 @@ void morphologyClose(Mat &src, Mat &dst, const Mat &kernel) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("morphologyClose(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("morphologyClose(): Input src image's type error! It should be CV_8UC1!");
     }
 
     morphologyEx(src, dst, MORPH_CLOSE, kernel);
@@ -104,10 +104,46 @@ void morphologyHMT(Mat &src, Mat &dst, const Mat &fore_kernel, const Mat &back_k
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("morphologyHMT(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("morphologyHMT(): Input src image's type error! It should be CV_8UC1!");
     }
 
     morphologyEx(src, dst, cv::MORPH_HITMISS, fore_kernel - back_kernel);
+}
+
+void morphologyGradient(Mat &src, Mat &dst, const Mat &kernel) {
+    if (src.empty()) {
+        throw invalid_argument("morphologyGradient(): Input src image is empty!");
+    }
+
+    if (src.type() != CV_8UC1) {
+        throw invalid_argument("morphologyGradient(): Input src image's type error! It should be CV_8UC1!");
+    }
+
+    morphologyEx(src, dst, cv::MORPH_GRADIENT, kernel);
+}
+
+void morphologyTophat(Mat &src, Mat &dst, const Mat &kernel) {
+    if (src.empty()) {
+        throw invalid_argument("morphologyTophat(): Input src image is empty!");
+    }
+
+    if (src.type() != CV_8UC1) {
+        throw invalid_argument("morphologyTophat(): Input src image's type error! It should be CV_8UC1!");
+    }
+
+    morphologyEx(src, dst, cv::MORPH_TOPHAT, kernel);
+}
+
+void morphologyBlackhat(Mat &src, Mat &dst, const Mat &kernel) {
+    if (src.empty()) {
+        throw invalid_argument("morphologyBlackhat(): Input src image is empty!");
+    }
+
+    if (src.type() != CV_8UC1) {
+        throw invalid_argument("morphologyBlackhat(): Input src image's type error! It should be CV_8UC1!");
+    }
+
+    morphologyEx(src, dst, cv::MORPH_BLACKHAT, kernel);
 }
 
 void boundaryExtract(Mat &src, Mat &dst, int size) {
@@ -219,7 +255,7 @@ void erodeReconstruct(Mat &src, const Mat &tmpl, Mat &dst) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("erodeReconstruct(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("erodeReconstruct(): Input src image's type error! It should be CV_8UC1!");
     }
 
     if (tmpl.empty()) {
@@ -227,7 +263,11 @@ void erodeReconstruct(Mat &src, const Mat &tmpl, Mat &dst) {
     }
 
     if (tmpl.type() != CV_8UC1) {
-        throw invalid_argument("erodeReconstruct(): Input template image's type error! It should be CV_8UC1");
+        throw invalid_argument("erodeReconstruct(): Input template image's type error! It should be CV_8UC1!");
+    }
+
+    if (src.size() != tmpl.size()) {
+        throw invalid_argument("erodeReconstruct(): The size of src and the size of tmpl must be the same!");
     }
 
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
@@ -238,7 +278,8 @@ void erodeReconstruct(Mat &src, const Mat &tmpl, Mat &dst) {
     do {
         temp_last = temp.clone();
         morphologyErode(temp, temp, kernel);  // 腐蚀
-        bitwise_or(temp, tmpl, temp);  // 并集
+        // bitwise_or(temp, tmpl, temp);  // 并集
+        cv::max(temp, tmpl, temp);  // 逐点最大算子
     } while (countNonZero(temp_last != temp));
 
     temp.copyTo(dst);
@@ -250,7 +291,7 @@ void dilateReconstruct(Mat &src, const Mat &tmpl, Mat &dst) {
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("dilateReconstruct(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("dilateReconstruct(): Input src image's type error! It should be CV_8UC1!");
     }
 
     if (tmpl.empty()) {
@@ -258,7 +299,11 @@ void dilateReconstruct(Mat &src, const Mat &tmpl, Mat &dst) {
     }
 
     if (tmpl.type() != CV_8UC1) {
-        throw invalid_argument("dilateReconstruct(): Input template image's type error! It should be CV_8UC1");
+        throw invalid_argument("dilateReconstruct(): Input template image's type error! It should be CV_8UC1!");
+    }
+
+    if (src.size() != tmpl.size()) {
+        throw invalid_argument("dilateReconstruct(): The size of src and the size of tmpl must be the same!");
     }
 
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
@@ -269,7 +314,8 @@ void dilateReconstruct(Mat &src, const Mat &tmpl, Mat &dst) {
     do {
         temp_last = temp.clone();
         morphologyDilate(temp, temp, kernel);  // 膨胀
-        bitwise_and(temp, tmpl, temp);  // 交集
+        // bitwise_and(temp, tmpl, temp);  // 交集
+        cv::min(temp, tmpl, temp);  // 逐点最小算子
     } while (countNonZero(temp_last != temp));
 
     temp.copyTo(dst);
@@ -281,7 +327,7 @@ void openReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_time
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("openReconstruct(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("openReconstruct(): Input src image's type error! It should be CV_8UC1!");
     }
 
     // n 次腐蚀
@@ -302,7 +348,7 @@ void closeReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_t
     }
 
     if (src.type() != CV_8UC1) {
-        throw invalid_argument("closeReconstruct(): Input src image's type error! It should be CV_8UC1");
+        throw invalid_argument("closeReconstruct(): Input src image's type error! It should be CV_8UC1!");
     }
 
     // n 次膨胀
@@ -315,6 +361,36 @@ void closeReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_t
     erodeReconstruct(temp, src, temp);
 
     temp.copyTo(dst);
+}
+
+void tophatReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_times) {
+    if (src.empty()) {
+        throw invalid_argument("tophatReconstruct(): Input src image is empty!");
+    }
+
+    if (src.type() != CV_8UC1) {
+        throw invalid_argument("tophatReconstruct(): Input src image's type error! It should be CV_8UC1!");
+    }
+
+    Mat temp;
+    openReconstruct(src, temp, erode_kernel, erode_times);
+
+    subtract(src, temp, dst);
+}
+
+void blackhatReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_times) {
+    if (src.empty()) {
+        throw invalid_argument("blackhatReconstruct(): Input src image is empty!");
+    }
+
+    if (src.type() != CV_8UC1) {
+        throw invalid_argument("blackhatReconstruct(): Input src image's type error! It should be CV_8UC1!");
+    }
+
+    Mat temp;
+    closeReconstruct(src, temp, dilate_kernel, dilate_times);
+
+    subtract(src, temp, dst);
 }
 
 void holeFill(Mat &src, Mat &dst) {
