@@ -3,21 +3,24 @@
 
 
 int main() {
-    Mat image = imread("../image/text-touching-border-half.tif", IMREAD_GRAYSCALE);
+    Mat image = imread("../image/lena.png", IMREAD_GRAYSCALE);
 
-    Mat image_binary;
-    threshold(image, image_binary, 127, 1, THRESH_BINARY);
+    Mat dst1;
+    DWT(image, dst1, "sym2", 3);
 
-    Mat dst;
-    borderClear(image_binary, dst);
+    Mat dst2;
+    IDWT(dst1, dst2, "sym2", 3);
 
-    image_binary.convertTo(image_binary, image_binary.depth(), 255, 0);
-    dst.convertTo(dst, dst.depth(), 255, 0);
+    normalize(image, image, 0, 255, NORM_MINMAX, CV_8U);
+    normalize(dst1, dst1, 0, 255, NORM_MINMAX, CV_8U);
+    normalize(dst2, dst2, 0, 255, NORM_MINMAX, CV_8U);
 
-    namedWindow("img", WINDOW_NORMAL);
-    imshow("img", image_binary);
-    namedWindow("dst", WINDOW_NORMAL);
-    imshow("dst", dst);
+    namedWindow("img", WINDOW_AUTOSIZE);
+    imshow("img", image);
+    namedWindow("dst1", WINDOW_AUTOSIZE);
+    imshow("dst1", dst1);
+    namedWindow("dst2", WINDOW_AUTOSIZE);
+    imshow("dst2", dst2);
     waitKey(0);
 
     return 0;

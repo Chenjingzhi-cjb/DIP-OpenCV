@@ -178,6 +178,16 @@ void colorLayering(Mat &src, Mat &dst, const Vec3b& color_center, double range_r
 void colorEqualizeHist(Mat &src, Mat &dst);  // 彩色全局直方图均衡化（不建议使用）
 ```
 
+### 7. 小波变换和其他图像变换
+
+- **wavelet_transform.h**
+
+```cpp
+void DWT(Mat &src, Mat &dst, const string &wname, int level);  // 离散小波变换
+
+void IDWT(Mat &src, Mat &dst, const string &wname, int level);  // 离散小波逆变换
+```
+
 ### 9. 形态学图像处理
 
 - **morphological.h**

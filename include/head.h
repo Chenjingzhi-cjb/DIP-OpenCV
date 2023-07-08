@@ -8,6 +8,7 @@
 #include "image_noise.h"
 #include "color_process.h"
 #include "morphological.h"
+#include "wavelet_transform.h"
 
 using namespace std;
 using namespace cv;
