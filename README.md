@@ -186,6 +186,18 @@ void colorEqualizeHist(Mat &src, Mat &dst);  // 彩色全局直方图均衡化�
 void DWT(Mat &src, Mat &dst, const string &wname, int level);  // 离散小波变换
 
 void IDWT(Mat &src, Mat &dst, const string &wname, int level);  // 离散小波逆变换
+
+void DCT(Mat &src, Mat &dst);  // 离散余弦变换
+
+void IDCT(Mat &src, Mat &dst);  // 离散余弦逆变换
+
+void DCTDemo();  // 离散余弦变换及逆变换演示
+
+void blockDCT(Mat &src, Mat &dst, int block_size = 8);  // 分块离散余弦变换
+
+void blockIDCT(Mat &src, Mat &dst, int block_size = 8);  // 分块离散余弦逆变换
+
+void blockDCTDemo();  // 分块离散余弦变换及逆变换演示
 ```
 
 ### 9. 形态学图像处理

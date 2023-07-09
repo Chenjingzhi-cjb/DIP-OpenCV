@@ -91,6 +91,9 @@ void frequencyToSpatial(Mat &src_complex, Mat &dst) {
     Mat idft_real;
     idft(dft_complex, idft_real, DFT_REAL_OUTPUT);
 
+    // 裁剪至原尺寸
+    idft_real = idft_real(Rect(0, 0, dst.cols, dst.rows));
+
     idft_real.copyTo(dst);
 }
 
@@ -103,6 +106,7 @@ void domainTransformDemo() {
 
     Mat dst_idft = Mat::zeros(image_gray.size(), image_gray.depth());
     frequencyToSpatial(dst_complex, dst_idft);
+    normalize(dst_idft, dst_idft, 0, 255, NORM_MINMAX, CV_8U);
 
     namedWindow("src", WINDOW_AUTOSIZE);
     imshow("src", image_gray);
@@ -418,9 +422,6 @@ void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative) {
     // 对幅值进行归一化操作，转换为 CV_8U [0, 255]
     normalize(image_real, image_real, 0, 255, NORM_MINMAX, CV_8U);
 
-    // 裁剪至原尺寸
-    image_real = image_real(Rect(0, 0, src.cols, src.rows));
-
     image_real.copyTo(dst);
 }
 
@@ -495,9 +496,6 @@ void frequencyFilterPlMul(Mat &src, Mat &dst, Mat &kernel, bool rm_negative) {
 
     // 对幅值进行归一化操作，转换为 CV_8U [0, 255]
     normalize(image_real, image_real, 0, 255, NORM_MINMAX, CV_8U);
-
-    // 裁剪至原尺寸
-    image_real = image_real(Rect(0, 0, src.cols, src.rows));
 
     image_real.copyTo(dst);
 }

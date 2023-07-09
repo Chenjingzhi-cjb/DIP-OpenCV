@@ -55,56 +55,6 @@ Mat waveletDecompose(const Mat &_src, const Mat &_lowFilter, const Mat &_highFil
     return temp;
 }
 
-void DWT(Mat &src, Mat &dst, const string &wname, int level) {
-    if (src.empty()) {
-        throw invalid_argument("DWT(): Input image is empty!");
-    }
-
-    Mat_<float> temp = Mat_<float>(src).clone();
-
-    // 构建 低通、高通 滤波器
-    Mat low_filter;
-    Mat high_filter;
-    waveletFilterD(wname, low_filter, high_filter);
-
-    // 小波变换
-    int rows = src.rows;
-    int cols = src.cols;
-    for (int t = 1; t <= level; t++) {
-        // 行小波变换
-        for (int r = 0; r < rows; r++) {
-            Mat one_row = Mat::zeros(1, cols, temp.type());
-            for (int j = 0; j < cols; j++) {
-                one_row.at<float>(0, j) = temp.at<float>(r, j);
-            }
-
-            one_row = waveletDecompose(one_row, low_filter, high_filter);
-            for (int j = 0; j < cols; j++) {
-                temp.at<float>(r, j) = one_row.at<float>(0, j);
-            }
-        }
-
-        // 列小波变换
-        for (int c = 0; c < cols; c++) {
-            Mat one_col = Mat::zeros(rows, 1, temp.type());
-            for (int i = 0; i < rows; i++) {
-                one_col.at<float>(i, 0) = temp.at<float>(i, c);
-            }
-
-            one_col = (waveletDecompose(one_col.t(), low_filter, high_filter)).t();
-            for (int i = 0; i < rows; i++) {
-                temp.at<float>(i, c) = one_col.at<float>(i, 0);
-            }
-        }
-
-        // 更新
-        rows /= 2;
-        cols /= 2;
-    }
-
-    temp.copyTo(dst);
-}
-
 // 构建 小波逆变换 低通、高通 滤波器
 void waveletFilterR(const string &_wname, Mat &_lowFilter, Mat &_highFilter) {
     if (_wname == "haar" || _wname == "db1") {
@@ -159,6 +109,56 @@ Mat waveletReconstruct(const Mat &_src, const Mat &_lowFilter, const Mat &_highF
     return (dst_low + dst_high);
 }
 
+void DWT(Mat &src, Mat &dst, const string &wname, int level) {
+    if (src.empty()) {
+        throw invalid_argument("DWT(): Input image is empty!");
+    }
+
+    Mat_<float> temp = Mat_<float>(src).clone();
+
+    // 构建 低通、高通 滤波器
+    Mat low_filter;
+    Mat high_filter;
+    waveletFilterD(wname, low_filter, high_filter);
+
+    // 小波变换
+    int rows = src.rows;
+    int cols = src.cols;
+    for (int t = 1; t <= level; t++) {
+        // 行小波变换
+        for (int r = 0; r < rows; r++) {
+            Mat one_row = Mat::zeros(1, cols, temp.type());
+            for (int j = 0; j < cols; j++) {
+                one_row.at<float>(0, j) = temp.at<float>(r, j);
+            }
+
+            one_row = waveletDecompose(one_row, low_filter, high_filter);
+            for (int j = 0; j < cols; j++) {
+                temp.at<float>(r, j) = one_row.at<float>(0, j);
+            }
+        }
+
+        // 列小波变换
+        for (int c = 0; c < cols; c++) {
+            Mat one_col = Mat::zeros(rows, 1, temp.type());
+            for (int i = 0; i < rows; i++) {
+                one_col.at<float>(i, 0) = temp.at<float>(i, c);
+            }
+
+            one_col = (waveletDecompose(one_col.t(), low_filter, high_filter)).t();
+            for (int i = 0; i < rows; i++) {
+                temp.at<float>(i, c) = one_col.at<float>(i, 0);
+            }
+        }
+
+        // 更新
+        rows /= 2;
+        cols /= 2;
+    }
+
+    temp.copyTo(dst);
+}
+
 void IDWT(Mat &src, Mat &dst, const string &wname, int level) {
     if (src.empty()) {
         throw invalid_argument("IDWT(): Input image is empty!");
@@ -209,3 +209,144 @@ void IDWT(Mat &src, Mat &dst, const string &wname, int level) {
     temp.copyTo(dst);
 }
 
+void DCT(Mat &src, Mat &dst) {
+    if (src.empty()) {
+        throw invalid_argument("DCT(): Input image is empty!");
+    }
+
+    Mat_<float> temp = Mat_<float>(src).clone();
+
+    // 对输入矩阵进行零填充到合适的尺寸，使用镜像填充
+    int M = getOptimalDFTSize(temp.rows);
+    int N = getOptimalDFTSize(temp.cols);
+    Mat padded;
+    copyMakeBorder(temp, padded, 0, M - temp.rows, 0, N - temp.cols, BORDER_REFLECT_101,
+                   Scalar::all(0));
+
+    // 离散余弦变换
+    cv::dct(padded, temp);
+
+    temp.copyTo(dst);
+}
+
+void IDCT(Mat &src, Mat &dst) {
+    if (src.empty()) {
+        throw invalid_argument("IDCT(): Input image is empty!");
+    }
+
+    // 为确保输出图像与原图像的尺寸一致，应初始化并传入正确尺寸的 dst 对象，
+    // 如：Mat dst = Mat::zeros(src.size(), src.type());
+    if (dst.empty()) {
+        throw invalid_argument("IDCT(): Dst size unknown!");
+    }
+
+    Mat_<float> temp = Mat_<float>(src).clone();
+
+    // 离散余弦逆变换
+    idct(temp, temp);
+
+    // 裁剪至原尺寸
+    temp = temp(Rect(0, 0, dst.cols, dst.rows));
+
+    temp.copyTo(dst);
+}
+
+void DCTDemo() {
+    Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
+    image_gray.convertTo(image_gray, CV_32F, 1.0 / 255);
+
+    Mat dst_dct;
+    DCT(image_gray, dst_dct);
+
+    Mat dst_idct = Mat::zeros(image_gray.size(), image_gray.type());
+    IDCT(dst_dct, dst_idct);
+    normalize(dst_idct, dst_idct, 0, 1, NORM_MINMAX);
+
+    namedWindow("src", WINDOW_AUTOSIZE);
+    imshow("src", image_gray);
+    namedWindow("dct", WINDOW_AUTOSIZE);
+    imshow("dct", dst_dct);
+    namedWindow("idct", WINDOW_AUTOSIZE);
+    imshow("idct", dst_idct);
+    waitKey(0);
+}
+
+void blockDCT(Mat &src, Mat &dst, int block_size) {
+    if (src.empty()) {
+        throw invalid_argument("blockDCT(): Input image is empty!");
+    }
+
+    Mat_<float> temp = Mat_<float>(src).clone();
+
+    // 对输入矩阵进行零填充到合适的尺寸，使用镜像填充
+    int M = getOptimalDFTSize(temp.rows);
+    int N = getOptimalDFTSize(temp.cols);
+    Mat padded;
+    copyMakeBorder(temp, padded, 0, M - temp.rows, 0, N - temp.cols, BORDER_REFLECT_101,
+                   Scalar::all(0));
+
+    // 分块处理
+    for (int i = 0; i < padded.rows; i += block_size) {
+        for (int j = 0; j < padded.cols; j += block_size) {
+            // 获取块
+            cv::Mat block = padded(cv::Rect(j, i, block_size, block_size));
+
+            // 对块进行 dct
+            cv::dct(block, block);
+        }
+    }
+
+    padded.copyTo(dst);
+}
+
+void blockIDCT(Mat &src, Mat &dst, int block_size) {
+    if (src.empty()) {
+        throw invalid_argument("blockIDCT(): Input image is empty!");
+    }
+
+    // 为确保输出图像与原图像的尺寸一致，应初始化并传入正确尺寸的 dst 对象，
+    // 如：Mat dst = Mat::zeros(src.size(), src.type());
+    if (dst.empty()) {
+        throw invalid_argument("blockIDCT(): Dst size unknown!");
+    }
+
+    Mat_<float> temp = Mat_<float>(src).clone();
+
+    // 分块处理
+    for (int i = 0; i < temp.rows; i += block_size)
+    {
+        for (int j = 0; j < temp.cols; j += block_size)
+        {
+            // 获取块
+            cv::Mat block = temp(cv::Rect(j, i, block_size, block_size));
+
+            // 对块执行 idct
+            cv::idct(block, block);
+        }
+    }
+
+    // 裁剪至原尺寸
+    temp = temp(Rect(0, 0, dst.cols, dst.rows));
+
+    temp.copyTo(dst);
+}
+
+void blockDCTDemo() {
+    Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
+    image_gray.convertTo(image_gray, CV_32F, 1.0 / 255);
+
+    Mat dst_dct;
+    blockDCT(image_gray, dst_dct);
+
+    Mat dst_idct = Mat::zeros(image_gray.size(), image_gray.type());
+    blockIDCT(dst_dct, dst_idct);
+    normalize(dst_idct, dst_idct, 0, 1, NORM_MINMAX);
+
+    namedWindow("src", WINDOW_AUTOSIZE);
+    imshow("src", image_gray);
+    namedWindow("dct", WINDOW_AUTOSIZE);
+    imshow("dct", dst_dct);
+    namedWindow("idct", WINDOW_AUTOSIZE);
+    imshow("idct", dst_idct);
+    waitKey(0);
+}
