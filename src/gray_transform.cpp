@@ -361,7 +361,5 @@ void shadingCorrection(Mat &src, Mat &dst, float k1, float k2) {
         }
     }
 
-    normalize(src, dst, 0, 255, NORM_MINMAX, CV_8U);
-
     temp.copyTo(dst);
 }

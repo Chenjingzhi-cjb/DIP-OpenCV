@@ -2,6 +2,7 @@
 #define DIP_OPENCV_HEAD_H
 
 #include "common.h"
+#include "example.h"
 #include "gray_transform.h"
 #include "spatial_filter.h"
 #include "frequency_filter.h"

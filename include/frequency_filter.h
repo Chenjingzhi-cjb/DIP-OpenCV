@@ -50,13 +50,6 @@ void splitFrequencyMagnitude(Mat &src_complex, Mat &dst_magnitude);
 void frequencyToSpatial(Mat &src_complex, Mat &dst);
 
 /**
- * @brief 空间域图像与频率域图像的转换演示
- *
- * @return None
- */
-void domainTransformDemo();
-
-/**
  * @brief 理想低通频率滤波核函数，该核有振铃效应
  *
  * @param size 滤波核尺寸；应与处理图像的尺寸一致，src.size()

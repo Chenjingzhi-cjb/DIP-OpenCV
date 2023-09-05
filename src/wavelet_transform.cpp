@@ -251,26 +251,6 @@ void IDCT(Mat &src, Mat &dst) {
     temp.copyTo(dst);
 }
 
-void DCTDemo() {
-    Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
-    image_gray.convertTo(image_gray, CV_32F, 1.0 / 255);
-
-    Mat dst_dct;
-    DCT(image_gray, dst_dct);
-
-    Mat dst_idct = Mat::zeros(image_gray.size(), image_gray.type());
-    IDCT(dst_dct, dst_idct);
-    normalize(dst_idct, dst_idct, 0, 1, NORM_MINMAX);
-
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dct", WINDOW_AUTOSIZE);
-    imshow("dct", dst_dct);
-    namedWindow("idct", WINDOW_AUTOSIZE);
-    imshow("idct", dst_idct);
-    waitKey(0);
-}
-
 void blockDCT(Mat &src, Mat &dst, int block_size) {
     if (src.empty()) {
         throw invalid_argument("blockDCT(): Input image is empty!");
@@ -329,24 +309,4 @@ void blockIDCT(Mat &src, Mat &dst, int block_size) {
     temp = temp(Rect(0, 0, dst.cols, dst.rows));
 
     temp.copyTo(dst);
-}
-
-void blockDCTDemo() {
-    Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
-    image_gray.convertTo(image_gray, CV_32F, 1.0 / 255);
-
-    Mat dst_dct;
-    blockDCT(image_gray, dst_dct);
-
-    Mat dst_idct = Mat::zeros(image_gray.size(), image_gray.type());
-    blockIDCT(dst_dct, dst_idct);
-    normalize(dst_idct, dst_idct, 0, 1, NORM_MINMAX);
-
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dct", WINDOW_AUTOSIZE);
-    imshow("dct", dst_dct);
-    namedWindow("idct", WINDOW_AUTOSIZE);
-    imshow("idct", dst_idct);
-    waitKey(0);
 }

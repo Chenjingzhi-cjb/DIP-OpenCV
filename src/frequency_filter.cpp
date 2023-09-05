@@ -97,26 +97,6 @@ void frequencyToSpatial(Mat &src_complex, Mat &dst) {
     idft_real.copyTo(dst);
 }
 
-void domainTransformDemo() {
-    Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
-
-    Mat dst_complex, dst_magnitude;
-    spatialToFrequency(image_gray, dst_complex);
-    splitFrequencyMagnitude(dst_complex, dst_magnitude);
-
-    Mat dst_idft = Mat::zeros(image_gray.size(), image_gray.depth());
-    frequencyToSpatial(dst_complex, dst_idft);
-    normalize(dst_idft, dst_idft, 0, 255, NORM_MINMAX, CV_8U);
-
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dft", WINDOW_AUTOSIZE);
-    imshow("dft", dst_magnitude);
-    namedWindow("idft", WINDOW_AUTOSIZE);
-    imshow("idft", dst_idft);
-    waitKey(0);
-}
-
 Mat idealLowPassFreqKernel(Size size, int sigma) {
     int M = getOptimalDFTSize(size.height);
     int N = getOptimalDFTSize(size.width);

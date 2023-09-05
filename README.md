@@ -66,6 +66,12 @@ void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale
 void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double threshold2, int apertureSize = 3, bool L2gradient = false);  // Canny 锐化（高通）空间滤波
 ```
 
+- **example.h**
+
+```cpp
+void shadingCorrectionExample();  // 阴影校正示例
+```
+
 ### 4. 频率域滤波
 
 - **frequency_filter.h**
@@ -78,8 +84,6 @@ void spatialToFrequency(Mat &src, Mat &dst_complex);  // 图像空间域转频�
 void splitFrequencyMagnitude(Mat &src_complex, Mat &dst_magnitude);  // 从频率域复数图像中分离出频率域实部幅值图像
 
 void frequencyToSpatial(Mat &src_complex, Mat &dst);  // 图像频率域转空间域
-
-void domainTransformDemo();  // 空间域图像与频率域图像的转换演示
 
 Mat idealLowPassFreqKernel(Size size, int sigma);  // 理想低通频率滤波核函数，该核有振铃效应
 
@@ -112,6 +116,12 @@ Mat laplaceFreqKernel(Size size);  // 拉普拉斯频率滤波核函数
 void freqSharpenLaplace(Mat &src, Mat &dst);  // 拉普拉斯频率域锐化
 
 void frequencyFilterPlMul(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);  // 频率域滤波（复数乘法版）
+```
+
+- **example.h**
+
+```cpp
+void domainTransformExample();  // 空间域图像与频率域图像的转换示例
 ```
 
 ### 5. 图像复原与重构
@@ -191,13 +201,17 @@ void DCT(Mat &src, Mat &dst);  // 离散余弦变换
 
 void IDCT(Mat &src, Mat &dst);  // 离散余弦逆变换
 
-void DCTDemo();  // 离散余弦变换及逆变换演示
-
 void blockDCT(Mat &src, Mat &dst, int block_size = 8);  // 分块离散余弦变换
 
 void blockIDCT(Mat &src, Mat &dst, int block_size = 8);  // 分块离散余弦逆变换
+```
 
-void blockDCTDemo();  // 分块离散余弦变换及逆变换演示
+- **example.h**
+
+```cpp
+void DCTExample();  // 离散余弦变换及逆变换示例
+
+void blockDCTExample();  // 分块离散余弦变换及逆变换示例
 ```
 
 ### 9. 形态学图像处理

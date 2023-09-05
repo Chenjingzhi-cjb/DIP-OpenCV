@@ -55,13 +55,6 @@ void DCT(Mat &src, Mat &dst);
 void IDCT(Mat &src, Mat &dst);
 
 /**
- * @brief 离散余弦变换及逆变换演示
- *
- * @return None
- */
-void DCTDemo();
-
-/**
  * @brief 分块离散余弦变换
  *
  * 调用 cv::dct()
@@ -86,13 +79,6 @@ void blockDCT(Mat &src, Mat &dst, int block_size = 8);
 * @return None
 */
 void blockIDCT(Mat &src, Mat &dst, int block_size = 8);
-
-/**
- * @brief 分块离散余弦变换及逆变换演示
- *
- * @return None
- */
-void blockDCTDemo();
 
 
 #endif //DIP_OPENCV_WAVELET_TRANSFORM_H
