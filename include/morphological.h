@@ -20,7 +20,7 @@ using namespace cv;
  * @param type 二值化操作类型，请参阅 #ThresholdTypes
  * @return None
  */
-void grayToBinary(Mat &src, Mat &dst, double thresh, double maxval, int type);
+void grayToBinary(Mat &src, Mat &dst, double thresh, double maxval, int type = cv::THRESH_BINARY);
 
 /**
  * @brief 获取二值图像的最大值

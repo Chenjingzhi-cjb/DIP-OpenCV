@@ -1,6 +1,19 @@
 #include "example.h"
 
 
+void localEqualizeHistExample() {
+    Mat image_gray = imread(R"(..\image\hidden-symbols.tif)", 0);
+
+    Mat dst;
+    localEqualizeHist(image_gray, dst);
+
+    namedWindow("src", WINDOW_AUTOSIZE);
+    imshow("src", image_gray);
+    namedWindow("dst", WINDOW_AUTOSIZE);
+    imshow("dst", dst);
+    waitKey(0);
+}
+
 void shadingCorrectionExample() {
     Mat image_gray = imread(R"(..\image\checkerboard512-shaded.tif)", 0);
 
@@ -31,6 +44,34 @@ void domainTransformExample() {
     imshow("dft", dst_magnitude);
     namedWindow("idft", WINDOW_AUTOSIZE);
     imshow("idft", dst_idft);
+    waitKey(0);
+}
+
+void highFreqEmphasisExample() {
+    Mat image_gray = imread(R"(..\image\chestXray.tif)", 0);
+
+    Mat kernel = highFreqEmphasisKernel(image_gray.size(), 70);
+
+    Mat dst;
+    frequencyFilter(image_gray, dst, kernel);
+
+    namedWindow("src", WINDOW_AUTOSIZE);
+    imshow("src", image_gray);
+    namedWindow("dst", WINDOW_AUTOSIZE);
+    imshow("dst", dst);
+    waitKey(0);
+}
+
+void hsiExample() {
+    Mat image = imread(R"(..\image\strawberries-RGB.tif)");
+
+    Mat dst;
+    bgrToHsi(image, dst);
+
+    namedWindow("src", WINDOW_AUTOSIZE);
+    imshow("src", image);
+    namedWindow("dst", WINDOW_AUTOSIZE);
+    imshow("dst", dst);
     waitKey(0);
 }
 
@@ -71,5 +112,37 @@ void blockDCTExample() {
     imshow("dct", dst_dct);
     namedWindow("idct", WINDOW_AUTOSIZE);
     imshow("idct", dst_idct);
+    waitKey(0);
+}
+
+void holeFillExample() {
+    Mat image_gray = imread(R"(..\image\text-touching-border-half.tif)", 0);
+
+    Mat image_bin;
+    grayToBinary(image_gray, image_bin, 127, 255);
+
+    Mat dst;
+    holeFill(image_bin, dst);
+
+    namedWindow("src", WINDOW_AUTOSIZE);
+    imshow("src", image_bin);
+    namedWindow("dst", WINDOW_AUTOSIZE);
+    imshow("dst", dst);
+    waitKey(0);
+}
+
+void borderClearExample() {
+    Mat image_gray = imread(R"(..\image\text-touching-border-half.tif)", 0);
+
+    Mat image_bin;
+    grayToBinary(image_gray, image_bin, 127, 255);
+
+    Mat dst;
+    borderClear(image_bin, dst);
+
+    namedWindow("src", WINDOW_AUTOSIZE);
+    imshow("src", image_bin);
+    namedWindow("dst", WINDOW_AUTOSIZE);
+    imshow("dst", dst);
     waitKey(0);
 }

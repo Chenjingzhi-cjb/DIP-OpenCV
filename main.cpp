@@ -3,7 +3,7 @@
 
 
 int main() {
-    Mat image = imread("../image/chestXray.tif", IMREAD_GRAYSCALE);
+    Mat image = imread("../image/lena.png");
 
     namedWindow("img", WINDOW_AUTOSIZE);
     imshow("img", image);

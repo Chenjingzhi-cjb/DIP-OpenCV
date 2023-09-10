@@ -69,6 +69,8 @@ void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double thr
 - **example.h**
 
 ```cpp
+void localEqualizeHistExample();  // 局部直方图均衡化示例
+
 void shadingCorrectionExample();  // 阴影校正示例
 ```
 
@@ -122,6 +124,8 @@ void frequencyFilterPlMul(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = fa
 
 ```cpp
 void domainTransformExample();  // 空间域图像与频率域图像的转换示例
+
+void highFreqEmphasisExample();  // 高频增强滤波示例
 ```
 
 ### 5. 图像复原与重构
@@ -186,6 +190,12 @@ void colorLayering(Mat &src, Mat &dst, const Vec3b& color_center, double range_r
 // 彩色图像（RGB / HSI）的校正（对数变换 / 反对数变换 / 伽马变换）：参考灰度
 
 void colorEqualizeHist(Mat &src, Mat &dst);  // 彩色全局直方图均衡化（不建议使用）
+```
+
+- **example.h**
+
+```cpp
+void hsiExample();  // HSI 转换示例
 ```
 
 ### 7. 小波变换和其他图像变换
@@ -268,3 +278,10 @@ void holeFill(Mat &src, Mat &dst);  // 孔洞填充（自动版）
 void borderClear(Mat &src, Mat &dst);  // 边界清除
 ```
 
+- **example.h**
+
+```cpp
+void holeFillExample();  // 孔洞填充示例
+
+void borderClearExample();  // 边界清除示例
+```
