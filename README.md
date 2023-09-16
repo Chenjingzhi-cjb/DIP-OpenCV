@@ -284,4 +284,6 @@ void borderClear(Mat &src, Mat &dst);  // 边界清除
 void holeFillExample();  // 孔洞填充示例
 
 void borderClearExample();  // 边界清除示例
+
+void morphFlattenBackgroundExample();  // 使用灰度级形态学重建展平复杂背景示例
 ```

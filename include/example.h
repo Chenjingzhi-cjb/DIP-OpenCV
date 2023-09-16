@@ -89,5 +89,12 @@ void holeFillExample();
  */
 void borderClearExample();
 
+/**
+ * @brief 使用灰度级形态学重建展平复杂背景示例
+ *
+ * @return None
+ */
+void morphFlattenBackgroundExample();
+
 
 #endif //DIP_OPENCV_EXAMPLE_H
