@@ -8,10 +8,6 @@
 #include "wavelet_transform.h"
 
 
-using namespace std;
-using namespace cv;
-
-
 // 3. 灰度变换与空间滤波 灰度变换 gray_transform.h
 
 /**

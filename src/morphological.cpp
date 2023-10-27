@@ -107,7 +107,7 @@ void morphologyHMT(Mat &src, Mat &dst, const Mat &fore_kernel, const Mat &back_k
         throw invalid_argument("morphologyHMT(): Input src image's type error! It should be CV_8UC1!");
     }
 
-    morphologyEx(src, dst, cv::MORPH_HITMISS, fore_kernel - back_kernel);
+    morphologyEx(src, dst, MORPH_HITMISS, fore_kernel - back_kernel);
 }
 
 void morphologyGradient(Mat &src, Mat &dst, const Mat &kernel) {
@@ -119,7 +119,7 @@ void morphologyGradient(Mat &src, Mat &dst, const Mat &kernel) {
         throw invalid_argument("morphologyGradient(): Input src image's type error! It should be CV_8UC1!");
     }
 
-    morphologyEx(src, dst, cv::MORPH_GRADIENT, kernel);
+    morphologyEx(src, dst, MORPH_GRADIENT, kernel);
 }
 
 void morphologyTophat(Mat &src, Mat &dst, const Mat &kernel) {
@@ -131,7 +131,7 @@ void morphologyTophat(Mat &src, Mat &dst, const Mat &kernel) {
         throw invalid_argument("morphologyTophat(): Input src image's type error! It should be CV_8UC1!");
     }
 
-    morphologyEx(src, dst, cv::MORPH_TOPHAT, kernel);
+    morphologyEx(src, dst, MORPH_TOPHAT, kernel);
 }
 
 void morphologyBlackhat(Mat &src, Mat &dst, const Mat &kernel) {
@@ -143,7 +143,7 @@ void morphologyBlackhat(Mat &src, Mat &dst, const Mat &kernel) {
         throw invalid_argument("morphologyBlackhat(): Input src image's type error! It should be CV_8UC1!");
     }
 
-    morphologyEx(src, dst, cv::MORPH_BLACKHAT, kernel);
+    morphologyEx(src, dst, MORPH_BLACKHAT, kernel);
 }
 
 void boundaryExtract(Mat &src, Mat &dst, int size) {
@@ -192,7 +192,7 @@ void holeFill(Mat &src, Mat &dst, Mat &start) {
     temp.copyTo(dst);
 }
 
-void extractConnected(Mat &src, Mat &dst) {
+int extractConnected(Mat &src, Mat &dst) {
     if (src.empty()) {
         throw invalid_argument("extractConnected(): Input src image is empty!");
     }
@@ -247,6 +247,8 @@ void extractConnected(Mat &src, Mat &dst) {
     }
 
     C.copyTo(dst);
+
+    return nc;
 }
 
 void erodeReconstruct(Mat &src, const Mat &tmpl, Mat &dst) {

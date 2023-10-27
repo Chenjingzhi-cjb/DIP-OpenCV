@@ -102,7 +102,7 @@ Mat idealLowPassFreqKernel(Size size, int sigma) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1, D(u, v) <= D0
@@ -129,7 +129,7 @@ Mat gaussLowPassFreqKernel(Size size, int sigma) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = e^(-(D^2) / (2 * D0^2))
@@ -152,7 +152,7 @@ Mat bwLowPassFreqKernel(Size size, int sigma, int order) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 / (1 + (D / D0)^(2n))
@@ -175,7 +175,7 @@ Mat idealHighPassFreqKernel(Size size, int sigma) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 0, D(u, v) <= D0
@@ -202,7 +202,7 @@ Mat gaussHighPassFreqKernel(Size size, int sigma) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 - e^(-(D^2) / (2 * D0^2))
@@ -225,7 +225,7 @@ Mat bwHighPassFreqKernel(Size size, int sigma, int order) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 / (1 + (D0 / D)^(2n))
@@ -248,7 +248,7 @@ Mat highFreqEmphasisKernel(Size size, int sigma, float k1, float k2) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = k1 + k2 * (1 - e^(-(D^2) / (2 * D0^2)))
@@ -271,7 +271,7 @@ Mat homomorphicEmphasisKernel(Size size, int sigma, float gamma_h, float gamma_l
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = (gh - gl) * (1 - e^(-c * (D^2) / (D0^2))) + gl
@@ -294,7 +294,7 @@ Mat idealBandRejectFreqKernel(Size size, int C0, int width) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 0, C0 - W/2 <= D(u, v) <= C0 + W/2
@@ -321,7 +321,7 @@ Mat gaussBandRejectFreqKernel(Size size, int C0, int width) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 - e^(-((D^2 - C0^2) / (D * W))^2)
@@ -344,7 +344,7 @@ Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 / (1 + ((D * W) / (D^2 - C0^2))^(2n))
@@ -410,7 +410,7 @@ Mat laplaceFreqKernel(Size size) {
     int N = getOptimalDFTSize(size.width);
     Size t_size = Size(N, M);
 
-    cv::Mat kernel(t_size, CV_32FC1);
+    Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = -4 * pi^2 * D^2

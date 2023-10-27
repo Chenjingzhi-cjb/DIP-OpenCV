@@ -86,7 +86,7 @@ void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage) {
                     values.emplace_back(src_copy.at<uchar>(i + k, j + l));
                 }
             }
-            std::sort(values.begin(), values.end());
+            sort(values.begin(), values.end());
             temp.at<uchar>(i, j) = values[index];
         }
     }
@@ -354,7 +354,7 @@ void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d) {
                     values.emplace_back(src_copy.at<uchar>(i + k, j + l));
                 }
             }
-            std::sort(values.begin(), values.end());
+            sort(values.begin(), values.end());
             temp.at<uchar>(i, j) = accumulate(next(values.begin(), d_half), prev(values.end(), d_half), 0) /
                                    (ksize.height * ksize.width - d_half * 2);
         }
@@ -463,7 +463,7 @@ void adaptiveMedianFilter(Mat &src, Mat &dst, int max_ksize) {
                 }
 
                 // 计算参数
-                std::sort(values.begin(), values.end());
+                sort(values.begin(), values.end());
                 int zmin = values.front();
                 int zmax = values.back();
                 int zmed = values[values.size() / 2];

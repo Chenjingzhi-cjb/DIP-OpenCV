@@ -4,10 +4,6 @@
 #include "common.h"
 
 
-using namespace std;
-using namespace cv;
-
-
 /**
  * @brief GRAY 转换为 Binary (二值化)
  *
@@ -20,7 +16,7 @@ using namespace cv;
  * @param type 二值化操作类型，请参阅 #ThresholdTypes
  * @return None
  */
-void grayToBinary(Mat &src, Mat &dst, double thresh, double maxval, int type = cv::THRESH_BINARY);
+void grayToBinary(Mat &src, Mat &dst, double thresh, double maxval, int type = THRESH_BINARY);
 
 /**
  * @brief 获取二值图像的最大值
@@ -164,9 +160,9 @@ void holeFill(Mat &src, Mat &dst, Mat &start);
  *
  * @param src 输入图像；type: CV_8UC1，二值图
  * @param dst 输出图像
- * @return None
+ * @return Number of connected
  */
-void extractConnected(Mat &src, Mat &dst);
+int extractConnected(Mat &src, Mat &dst);
 
 // 凸壳、细化、粗化、骨架、裁剪
 

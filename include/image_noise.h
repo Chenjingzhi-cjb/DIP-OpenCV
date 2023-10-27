@@ -5,10 +5,6 @@
 #include "gray_transform.h"
 
 
-using namespace std;
-using namespace cv;
-
-
 /**
  * @brief 添加高斯噪声
  *

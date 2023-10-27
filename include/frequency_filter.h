@@ -4,10 +4,6 @@
 #include "common.h"
 
 
-using namespace std;
-using namespace cv;
-
-
 /**
  * @brief 傅里叶图像象限变换
  *

@@ -225,17 +225,17 @@ void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, int type, double
 
                 if (type == 0) {
                     if (u < noise_level / 2.0) {
-                        src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(salt_value, salt_value, salt_value);
+                        src_copy.at<Vec3d>(i, j) = Vec3d(salt_value, salt_value, salt_value);
                     } else if (u < noise_level) {
-                        src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(pepper_value, pepper_value, pepper_value);
+                        src_copy.at<Vec3d>(i, j) = Vec3d(pepper_value, pepper_value, pepper_value);
                     }
                 } else if (type == 1) {
                     if (u < noise_level) {
-                        src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(salt_value, salt_value, salt_value);
+                        src_copy.at<Vec3d>(i, j) = Vec3d(salt_value, salt_value, salt_value);
                     }
                 } else if (type == 2) {
                     if (u < noise_level) {
-                        src_copy.at<cv::Vec3d>(i, j) = cv::Vec3d(pepper_value, pepper_value, pepper_value);
+                        src_copy.at<Vec3d>(i, j) = Vec3d(pepper_value, pepper_value, pepper_value);
                     }
                 } else {
                     cout << "addNoiseSaltPepper(): The type does not meet the requirements. " << endl;

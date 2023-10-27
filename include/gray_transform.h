@@ -4,10 +4,6 @@
 #include "common.h"
 
 
-using namespace std;
-using namespace cv;
-
-
 /**
  * @brief BGR 转换为 GRAY
  *

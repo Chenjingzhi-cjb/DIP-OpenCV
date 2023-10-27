@@ -11,7 +11,5 @@
 #include "morphological.h"
 #include "wavelet_transform.h"
 
-using namespace std;
-using namespace cv;
 
 #endif //DIP_OPENCV_HEAD_H

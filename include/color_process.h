@@ -4,19 +4,25 @@
 #include "common.h"
 
 
-using namespace std;
-using namespace cv;
-
-
 /**
  * @brief 彩色通道分离
  *
  * 调用 cv::split()
  *
  * @param src 输入图像
- * @return Color channel image group
+ * @return Color Image Channels
  */
 vector<Mat> colorChannelSpilt(Mat &src);
+
+/**
+ * @brief 彩色通道合并
+ *
+ * 调用 cv::merge()
+ *
+ * @param channels 输入图像通道
+ * @return Color Image
+ */
+Mat colorChannelMerge(vector<Mat> &channels);
 
 /**
  * @brief BGR 转换为 HSI

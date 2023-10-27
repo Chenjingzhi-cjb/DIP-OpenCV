@@ -224,7 +224,7 @@ void DCT(Mat &src, Mat &dst) {
                    Scalar::all(0));
 
     // 离散余弦变换
-    cv::dct(padded, temp);
+    dct(padded, temp);
 
     temp.copyTo(dst);
 }
@@ -269,10 +269,10 @@ void blockDCT(Mat &src, Mat &dst, int block_size) {
     for (int i = 0; i < padded.rows; i += block_size) {
         for (int j = 0; j < padded.cols; j += block_size) {
             // 获取块
-            cv::Mat block = padded(cv::Rect(j, i, block_size, block_size));
+            Mat block = padded(Rect(j, i, block_size, block_size));
 
             // 对块进行 dct
-            cv::dct(block, block);
+            dct(block, block);
         }
     }
 
@@ -298,10 +298,10 @@ void blockIDCT(Mat &src, Mat &dst, int block_size) {
         for (int j = 0; j < temp.cols; j += block_size)
         {
             // 获取块
-            cv::Mat block = temp(cv::Rect(j, i, block_size, block_size));
+            Mat block = temp(Rect(j, i, block_size, block_size));
 
             // 对块执行 idct
-            cv::idct(block, block);
+            idct(block, block);
         }
     }
 

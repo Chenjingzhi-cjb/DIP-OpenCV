@@ -41,7 +41,7 @@ void grayLog(Mat &src, Mat &dst) {
     }
 
     // 线性缩放至 [0, 255]
-    normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
+    normalize(temp, temp, 0, 255, NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }
@@ -62,7 +62,7 @@ void grayAntiLog(Mat &src, Mat &dst) {
     }
 
     // 线性缩放至 [0, 255]
-    normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
+    normalize(temp, temp, 0, 255, NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }
@@ -88,7 +88,7 @@ void grayGamma(Mat &src, Mat &dst, float gamma) {
     }
 
     // 线性缩放至 [0, 255]
-    normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
+    normalize(temp, temp, 0, 255, NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }

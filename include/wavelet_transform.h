@@ -4,10 +4,6 @@
 #include "common.h"
 
 
-using namespace std;
-using namespace cv;
-
-
 /**
  * @brief 离散小波变换
  *

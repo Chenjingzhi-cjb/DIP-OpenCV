@@ -12,6 +12,17 @@ vector<Mat> colorChannelSpilt(Mat &src) {
     return move(planes);
 }
 
+Mat colorChannelMerge(vector<Mat> &channels) {
+    if (channels.empty()) {
+        throw invalid_argument("colorChannelMerge(): Input channels is empty!");
+    }
+
+    Mat temp;
+    merge(channels, temp);
+
+    return move(temp);
+}
+
 void bgrToHsi(Mat &src, Mat &dst) {
     if (src.empty()) {
         throw invalid_argument("bgrToHsi(): Input image is empty!");
