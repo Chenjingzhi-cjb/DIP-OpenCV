@@ -1,6 +1,40 @@
 #include "other_application.h"
 
 
+pair<double, double> calcImageOffset(Mat &image_tmpl, Mat &image_offset) {
+    if (image_tmpl.empty()) {
+        throw invalid_argument("calcImageOffset() Error: Unable to load image_tmpl or image_tmpl loading error!");
+    }
+
+    if (image_offset.empty()) {
+        throw invalid_argument("calcImageOffset() Error: Unable to load image_offset or image_offset loading error!");
+    }
+
+    int tmpl_width = image_tmpl.cols;
+    int tmpl_height = image_tmpl.rows;
+    int offset_width = image_offset.cols;
+    int offset_height = image_offset.rows;
+
+    // 进行模板匹配
+    Mat temp;
+    matchTemplate(image_offset, image_tmpl, temp, TM_CCOEFF_NORMED);
+
+    // 定位匹配的位置
+    Point max_loc;
+    minMaxLoc(temp, nullptr, nullptr, nullptr, &max_loc);
+
+    // 使用亚像素级的插值来精确定位模板的中心
+    Point2f subpixel_offset = phaseCorrelate(image_tmpl,
+                                             image_offset(Rect(max_loc.x, max_loc.y, tmpl_width, tmpl_height)));
+
+    // 返回结果，中心坐标系像素
+    pair<double, double> offset_value;
+    offset_value.first = ((double) max_loc.x + subpixel_offset.x) - (int) ((offset_width - tmpl_width) / 2);
+    offset_value.second = (int) ((offset_height - tmpl_height) / 2) - ((double) max_loc.y + subpixel_offset.y);
+
+    return offset_value;
+}
+
 pair<double, double> calcImageOffset(Mat &image_std, Mat &image_offset, double tmpl_divisor) {
     if (image_std.empty()) {
         throw invalid_argument("calcImageOffset() Error: Unable to load image_std or image_std loading error!");
@@ -23,22 +57,6 @@ pair<double, double> calcImageOffset(Mat &image_std, Mat &image_offset, double t
     Mat image_tmpl = image_std(
             Rect((std_width - tmpl_width) / 2, (std_height - tmpl_height) / 2, tmpl_width, tmpl_height));
 
-    // 进行模板匹配
-    Mat temp;
-    matchTemplate(image_offset, image_tmpl, temp, TM_CCOEFF_NORMED);
-
-    // 定位匹配的位置
-    Point max_loc;
-    minMaxLoc(temp, nullptr, nullptr, nullptr, &max_loc);
-
-    // 使用亚像素级的插值来精确定位模板的中心
-    Point2f subpixel_offset = phaseCorrelate(image_tmpl,
-                                             image_offset(Rect(max_loc.x, max_loc.y, tmpl_width, tmpl_height)));
-
-    // 返回结果，中心坐标系像素
-    pair<double, double> offset_value;
-    offset_value.first = ((double) max_loc.x + subpixel_offset.x) - (int) ((std_width - tmpl_width) / 2);
-    offset_value.second = (int) ((std_height - tmpl_height) / 2) - ((double) max_loc.y + subpixel_offset.y);
-
-    return offset_value;
+    // 计算图像偏移
+    return calcImageOffset(image_tmpl, image_offset);
 }
