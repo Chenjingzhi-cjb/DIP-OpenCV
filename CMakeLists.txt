@@ -7,14 +7,12 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 include_directories(include)
 aux_source_directory(src SRC_LIST)
 
-# opencv
+# ------ opencv ------
+#set(OpenCV_DIR "C:/xxx/opencv-470/mingw-build")  # 库安装路径，已添加到环境变量则可以不用
 find_package(OpenCV REQUIRED)
-#set(OpenCV_DIR "C:/Users/12865/Desktop/opencv-455/mingw-build")  # 注意修改
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-#include_directories(${OpenCV_INCLUDE_DIRS})
+#include_directories(${OpenCV_INCLUDE_DIRS})  # 一般可以自动找到
+set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs)  # 注意添加相应动态库到环境变量
 
 add_executable(main main.cpp ${SRC_LIST})
 
-# opencv
-set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs)
-target_link_libraries(main ${OpenCV_LIBS})
+target_link_libraries(main ${OpenCV_LIBS})  # OpenCV_LIBS 默认为加载 opencv 所有库
