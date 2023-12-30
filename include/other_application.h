@@ -23,7 +23,6 @@ pair<double, double> calcImageOffset(Mat &image_tmpl, Mat &image_offset);
  */
 pair<double, double> calcImageOffset(Mat &image_std, Mat &image_offset, double tmpl_divisor);
 
-
 /**
  * @brief 计算图像清晰度值
  *
