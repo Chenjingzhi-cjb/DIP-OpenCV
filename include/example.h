@@ -90,7 +90,7 @@ void borderClearExample();
  *
  * @return None
  */
-void morphFlattenBackgroundExample();
+void morphFlattenBackgroundExample();  // TODO: 使用 msvc 编译器编译后，运行时出现未知原因导致的延迟
 
 
 #endif //DIP_OPENCV_EXAMPLE_H

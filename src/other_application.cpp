@@ -60,3 +60,68 @@ pair<double, double> calcImageOffset(Mat &image_std, Mat &image_offset, double t
     // 计算图像偏移
     return calcImageOffset(image_tmpl, image_offset);
 }
+
+// 计算图像的清晰度值（梯度方法）
+double calcSharpnessGradientScore(const Mat &image) {
+    Mat grad_x, grad_y;
+    Sobel(image, grad_x, CV_64F, 1, 0);
+    Sobel(image, grad_y, CV_64F, 0, 1);
+    Mat magnitude, angle;
+    cartToPolar(grad_x, grad_y, magnitude, angle);
+
+    Scalar mean_magnitude = mean(magnitude);
+    return mean_magnitude[0];
+}
+
+// 计算图像的清晰度值（方差方法）
+double calcSharpnessVarianceScore(const Mat &image) {
+    Mat mean, stddev;
+    meanStdDev(image, mean, stddev);
+    return stddev.at<double>(0);
+}
+
+// 计算图像的清晰度值（频谱方法）
+double calcSharpnessSpectrumScore(const Mat &image) {
+    Mat complex_image;
+    image.convertTo(complex_image, CV_32F);
+    dft(complex_image, complex_image);
+
+    // 分离复数图像到实部和虚部
+    Mat planes[2];
+    split(complex_image, planes);
+
+    // 计算幅度谱
+    Mat magnitude_image;
+    magnitude(planes[0], planes[1], magnitude_image);
+
+    Scalar mean_magnitude = mean(magnitude_image);
+    return mean_magnitude[0];
+}
+
+// 计算图像的清晰度值（能量方法）
+double calcSharpnessEnergyScore(const Mat &image) {
+    Mat squared_image;
+    multiply(image, image, squared_image);
+    Scalar sum_squared_image = sum(squared_image);
+
+    return sum_squared_image[0];
+}
+
+double calcImageSharpness(Mat &image) {
+    if (image.empty()) {
+        throw invalid_argument("calcImageSharpness(): Input image is empty!");
+    }
+
+    double gradient_score = calcSharpnessGradientScore(image);  // 梯度方法
+    double variance_score = calcSharpnessVarianceScore(image);  // 方差方法
+    double spectrum_score = calcSharpnessSpectrumScore(image);  // 频谱方法
+    double energy_score = calcSharpnessEnergyScore(image);      // 能量方法
+
+    // 输出清晰度值
+    cout << "Gradient Score: " << gradient_score << endl;
+    cout << "Variance Score: " << variance_score << endl;
+    cout << "Spectrum Score: " << spectrum_score << endl;
+    cout << "Energy Score: " << energy_score << endl;
+
+    return gradient_score;
+}

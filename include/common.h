@@ -14,6 +14,8 @@
 using namespace std;
 using namespace cv;
 
+const double math_pi = std::acos(-1.0);
+
 
 /**
  * @brief 打印图像数据

@@ -24,4 +24,13 @@ pair<double, double> calcImageOffset(Mat &image_tmpl, Mat &image_offset);
 pair<double, double> calcImageOffset(Mat &image_std, Mat &image_offset, double tmpl_divisor);
 
 
+/**
+ * @brief 计算图像清晰度值
+ *
+ * @param image 输入图像
+ * @return The sharpness score of image
+ */
+double calcImageSharpness(Mat &image);
+
+
 #endif //DIP_OPENCV_OTHER_APPLICATION_H

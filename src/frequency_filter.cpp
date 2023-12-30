@@ -419,7 +419,7 @@ Mat laplaceFreqKernel(Size size) {
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
             double d2 = pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2);
-            double h = -4 * pow(M_PI, 2) * d2;
+            double h = -4 * pow(math_pi, 2) * d2;
             kernel.at<float>(i, j) = (float) h;
         }
     }

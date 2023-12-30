@@ -44,7 +44,7 @@ void bgrToHsi(Mat &src, Mat &dst) {
                 H = 0;
             } else {  // den != 0
                 double theta = acos((R - G + R - B) / (2 * den));
-                H = (B <= G) ? (theta / (2 * M_PI)) : (1 - theta / (2 * M_PI));
+                H = (B <= G) ? (theta / (2 * math_pi)) : (1 - theta / (2 * math_pi));
             }
 
             double sum = B + G + R;
@@ -74,25 +74,25 @@ void hsiToBgr(Mat &src, Mat &dst) {
         for (int c = 0; c < src.cols; ++c) {
             Vec3b m = src.at<Vec3b>(r, c);
 
-            double H = (double) m[0] / 255 * 2 * M_PI;
+            double H = (double) m[0] / 255 * 2 * math_pi;
             double S = (double) m[1] / 255;
             double I = (double) m[2] / 255;
 
             double B, G, R;
 
-            if (H < 120 * M_PI / 180) {
+            if (H < 120 * math_pi / 180) {
                 B = I * (1 - S);
-                R = I * (1 + S * cos(H) / cos(60 * M_PI / 180 - H));
+                R = I * (1 + S * cos(H) / cos(60 * math_pi / 180 - H));
                 G = 3 * I - R - B;
-            } else if (H >= 120 * M_PI / 180 && H < 240 * M_PI / 180) {
-                H -= (120 * M_PI / 180);
+            } else if (H >= 120 * math_pi / 180 && H < 240 * math_pi / 180) {
+                H -= (120 * math_pi / 180);
                 R = I * (1 - S);
-                G = I * (1 + S * cos(H) / cos(60 * M_PI / 180 - H));
+                G = I * (1 + S * cos(H) / cos(60 * math_pi / 180 - H));
                 B = 3 * I - R - G;
-            } else if (H >= 240 * M_PI / 180) {
-                H -= (240 * M_PI / 180);
+            } else if (H >= 240 * math_pi / 180) {
+                H -= (240 * math_pi / 180);
                 G = I * (1 - S);
-                B = I * (1 + S * cos(H) / cos(60 * M_PI / 180 - H));
+                B = I * (1 + S * cos(H) / cos(60 * math_pi / 180 - H));
                 R = 3 * I - B - G;
             }
 
