@@ -155,7 +155,7 @@ Mat gaussBandRejectFreqKernel(Size size, int C0, int width);
  */
 Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order);
 
-// Mat notchBandRejectFreqKernel() 陷波带阻滤波核（定制化，主要用于处理周期噪声）
+// Mat notchBandRejectFreqKernel();  陷波带阻滤波核（定制化，主要用于处理周期噪声）
 
 /**
  * @brief 频率域滤波

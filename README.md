@@ -109,7 +109,7 @@ Mat gaussBandRejectFreqKernel(Size size, int C0, int width);  // 高斯带阻频
 
 Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order);  // 巴特沃斯带阻频率滤波核函数
 
-// Mat notchBandRejectFreqKernel() 陷波带阻滤波核（定制化，主要用于处理周期噪声）
+// Mat notchBandRejectFreqKernel();  陷波带阻滤波核（定制化，主要用于处理周期噪声）
 
 void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative = false);  // 频率域滤波
 

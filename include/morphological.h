@@ -164,6 +164,13 @@ void holeFill(Mat &src, Mat &dst, Mat &start);
  */
 int extractConnected(Mat &src, Mat &dst);
 
+// 连通域提取
+// OpenCV int connectedComponents(InputArray image, OutputArray labels, int connectivity, int ltype, int ccltype);
+
+// 连通域提取（详细）
+// OpenCV int connectedComponentsWithStats(InputArray image, OutputArray labels, OutputArray stats,
+//                                         OutputArray centroids, int connectivity, int ltype, int ccltype);
+
 // 凸壳、细化、粗化、骨架、裁剪
 
 /**
