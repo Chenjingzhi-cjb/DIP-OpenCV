@@ -11,7 +11,7 @@ aux_source_directory(src SRC_LIST)
 #set(OpenCV_DIR "C:/xxx/opencv-470/mingw-build")  # 库安装路径，已添加到环境变量则可以不用
 find_package(OpenCV REQUIRED)
 #include_directories(${OpenCV_INCLUDE_DIRS})  # 一般可以自动找到
-set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs)  # 注意添加相应动态库到环境变量
+set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs opencv_xfeatures2d)  # 注意添加相应动态库到环境变量
 
 # ------ opencv msvc build (default world) ------
 #set(CMAKE_PREFIX_PATH "D:/opencv-470/build")  # 库安装路径

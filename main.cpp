@@ -8,8 +8,9 @@ int main() {
     Mat dst;
 //    cornerDetectHarris(image, dst, 120, 3, 3);
 //    cornerDetectShiTomasi(image, dst, 120, 0.01, 10);
-    cornerDetectSubPixel(image, dst, 120, 0.01, 10, Size(5, 5), Size(-1, -1),
-                         TermCriteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 40, 0.001));
+//    cornerDetectSubPixel(image, dst, 120, 0.01, 10, Size(5, 5), Size(-1, -1),
+//                         TermCriteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 40, 0.001));
+    keyPointDetectSurf(image, dst);
 
     namedWindow("img", WINDOW_AUTOSIZE);
     imshow("img", dst);

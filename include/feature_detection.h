@@ -3,6 +3,10 @@
 
 #include "common.h"
 #include "gray_transform.h"
+#include <opencv2/xfeatures2d.hpp>
+
+
+using namespace cv::xfeatures2d;
 
 
 /**
@@ -60,6 +64,23 @@ void cornerDetectShiTomasi(Mat &src, Mat &dst, int maxCorners, double qualityLev
 void cornerDetectSubPixel(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, Size winSize,
                           Size zeroZone, TermCriteria criteria, InputArray mask = noArray(), int blockSize = 3,
                           bool useHarrisDetector = false, double k = 0.04);
+
+/**
+ * @brief 基于 SURF 算法的关键点特征检测
+ *
+ * 调用 cv::xfeatures2d::SURF
+ *
+ * @param src 输入图像；type: CV_8U 或 CV_32F
+ * @param dst 输出图像
+ * @param hessianThreshold 检测阈值
+ * @param nOctaves 图像金字塔的层数
+ * @param nOctaveLayers 图像金字塔的每一层的子层数
+ * @param extended 扩展描述符标志；true - 生成的描述符具有 128 个元素，false - 生成的描述符具有 64 个元素
+ * @param upright 直立或旋转特征标志；true - 不计算特征点的方向信息，false - 计算特征点的方向（即特征点能够适应图像的旋转变换）
+ * @return None
+ */
+void keyPointDetectSurf(Mat &src, Mat &dst, double hessianThreshold = 100, int nOctaves = 4, int nOctaveLayers = 3,
+                        bool extended = false, bool upright = false);
 
 
 #endif //DIP_OPENCV_FEATURE_DETECTION_H

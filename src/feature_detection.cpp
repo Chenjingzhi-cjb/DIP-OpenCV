@@ -116,3 +116,29 @@ void cornerDetectSubPixel(Mat &src, Mat &dst, int maxCorners, double qualityLeve
 
     temp.copyTo(dst);
 }
+
+void keyPointDetectSurf(Mat &src, Mat &dst, double hessianThreshold, int nOctaves, int nOctaveLayers, bool extended,
+                        bool upright) {
+    if (src.empty()) {
+        throw invalid_argument("keyPointDetectSurf(): Input image is empty!");
+    }
+
+    Mat temp;
+    if (src.channels() == 1) {
+        src.copyTo(temp);
+    } else if (src.channels() == 3) {
+        bgrToGray(src, temp);
+    } else {
+        return;
+    }
+
+    // SURF 特征检测
+    Ptr<SURF> detector = SURF::create(hessianThreshold, nOctaves, nOctaveLayers, extended, upright);
+    vector<KeyPoint> key_points;
+    detector->detect(temp, key_points, Mat());
+
+    // 绘制关键点
+    drawKeypoints(temp, key_points, temp, Scalar::all(-1));  // Scalar::all(-1) 表示每次随机选取颜色
+
+    temp.copyTo(dst);
+}
