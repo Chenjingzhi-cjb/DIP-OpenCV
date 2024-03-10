@@ -1,5 +1,39 @@
-#include "feature_detection.h"
+#include "image_segmentation.h"
 
+
+void pointDetectLaplaceKernel(Mat &src, Mat &dst) {
+    if (src.empty()) {
+        throw invalid_argument("linearSpatialFilter(): Input image is empty!");
+    }
+
+    // 孤立点检测的拉普拉斯核
+     Mat kernel = (Mat_<char>(3, 3) << 1, 1, 1, 1, -8, 1, 1, 1, 1);
+
+    filter2D(src, dst, src.depth(), kernel);
+}
+
+void lineDetectLaplaceKernel(Mat &src, Mat &dst, int line_type) {
+    if (src.empty()) {
+        throw invalid_argument("linearSpatialFilter(): Input image is empty!");
+    }
+
+    // 线检测的拉普拉斯核
+    Mat kernel;
+
+    if (line_type == 1) {
+        kernel = (Mat_<char>(3, 3) << -1, -1, -1, 2, 2, 2, -1, -1, -1);  // 水平
+    } else if (line_type == 2) {
+        kernel = (Mat_<char>(3, 3) << 2, -1, -1, -1, 2, -1, -1, -1, 2);  // 西北-东南 方向
+    } else if (line_type == 3) {
+        kernel = (Mat_<char>(3, 3) << -1, 2, -1, -1, 2, -1, -1, 2, -1);  // 垂直
+    } else if (line_type == 4) {
+        kernel = (Mat_<char>(3, 3) << -1, -1, 2, -1, 2, -1, 2, -1, -1);  // 东北-西南 方向
+    } else {
+        return;
+    }
+
+    filter2D(src, dst, src.depth(), kernel);
+}
 
 void cornerDetectHarris(Mat &src, Mat &dst, int threshold, int blockSize, int ksize, double k, int borderType) {
     if (src.empty()) {

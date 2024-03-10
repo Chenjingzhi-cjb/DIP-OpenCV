@@ -1,5 +1,5 @@
-#ifndef DIP_OPENCV_FEATURE_DETECTION_H
-#define DIP_OPENCV_FEATURE_DETECTION_H
+#ifndef DIP_OPENCV_IMAGE_SEGMENTATION_H
+#define DIP_OPENCV_IMAGE_SEGMENTATION_H
 
 #include "common.h"
 #include "gray_transform.h"
@@ -8,6 +8,31 @@
 
 using namespace cv::xfeatures2d;
 
+
+/**
+ * @brief 基于拉普拉斯核的孤立点检测
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @return None
+ */
+void pointDetectLaplaceKernel(Mat &src, Mat &dst);
+
+/**
+ * @brief 基于拉普拉斯核的线检测
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param line_type 线类型；1 - 水平线, 2 - 西北东南方向线, 3 - 垂直线, 4 - 东北西南方向线
+ * @return None
+ */
+void lineDetectLaplaceKernel(Mat &src, Mat &dst, int line_type);
+
+// 边缘检测：
+//  1. 降低噪声
+//  2. 检测边缘，可参考 “spatial_filter.h” 中的高通部分
+//      基本方法：计算图像的导数，即空间高通滤波，例如 Sobel 算子等；
+//      进阶方法：在滤波的基础上增加了对图像噪声和边缘性质等因素的考虑，例如 Canny 算子等
 
 /**
  * @brief 基于 Harris 算法的角点检测
@@ -83,4 +108,4 @@ void keyPointDetectSurf(Mat &src, Mat &dst, double hessianThreshold = 100, int n
                         bool extended = false, bool upright = false);
 
 
-#endif //DIP_OPENCV_FEATURE_DETECTION_H
+#endif //DIP_OPENCV_IMAGE_SEGMENTATION_H

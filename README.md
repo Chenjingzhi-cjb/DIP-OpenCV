@@ -63,7 +63,7 @@ void sharpenSpatialFilterSobel(Mat &src, Mat &dst, int dx, int dy, int ksize = 3
 
 void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale = 1, double delta = 0, int borderType = BORDER_DEFAULT);  // 沙尔（一阶导数）锐化（高通）空间滤波
 
-void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double threshold2, int apertureSize = 3, bool L2gradient = false);  // Canny 锐化（高通）空间滤波
+void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double threshold2, int apertureSize = 3, bool L2gradient = false);  // Canny 锐化（高通）空间滤波（边缘检测优化算法）
 ```
 
 - **example.h**
@@ -287,3 +287,28 @@ void borderClearExample();  // 边界清除示例
 
 void morphFlattenBackgroundExample();  // 使用灰度级形态学重建展平复杂背景示例
 ```
+
+### 10. 图像分割
+
+- **image_segmentation.h**
+
+```cpp
+void pointDetectLaplaceKernel(Mat &src, Mat &dst);  // 基于拉普拉斯核的孤立点检测
+
+void lineDetectLaplaceKernel(Mat &src, Mat &dst, int line_type);  // 基于拉普拉斯核的线检测
+
+// 边缘检测：
+//  1. 降低噪声
+//  2. 检测边缘，可参考 “spatial_filter.h” 中的高通部分
+//      基本方法：计算图像的导数，即空间高通滤波，例如 Sobel 算子等；
+//      进阶方法：在滤波的基础上增加了对图像噪声和边缘性质等因素的考虑，例如 Canny 算子等
+
+void cornerDetectHarris(Mat &src, Mat &dst, int threshold, int blockSize, int ksize, double k = 0.04, int borderType = BORDER_DEFAULT);  // 基于 Harris 算法的角点检测
+
+void cornerDetectShiTomasi(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, InputArray mask = noArray(), int blockSize = 3);  // 基于 Shi-Tomasi 算法的角点检测
+
+void cornerDetectSubPixel(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, Size winSize, Size zeroZone, TermCriteria criteria, InputArray mask = noArray(), int blockSize = 3, bool useHarrisDetector = false, double k = 0.04);  // 亚像素级角点检测
+
+void keyPointDetectSurf(Mat &src, Mat &dst, double hessianThreshold = 100, int nOctaves = 4, int nOctaveLayers = 3, bool extended = false, bool upright = false);  // 基于 SURF 算法的关键点特征检测
+```
+

@@ -11,7 +11,7 @@
 #include "morphological.h"
 #include "wavelet_transform.h"
 #include "other_application.h"
-#include "feature_detection.h"
+#include "image_segmentation.h"
 
 
 #endif //DIP_OPENCV_HEAD_H

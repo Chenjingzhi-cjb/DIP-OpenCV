@@ -134,14 +134,20 @@ void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale
                                 int borderType = BORDER_DEFAULT);
 
 /**
- * @brief Canny 锐化（高通）空间滤波
+ * @brief Canny 锐化（高通）空间滤波（边缘检测优化算法）
  *
  * 调用 cv::Canny()
  *
+ * 算法步骤：
+ *  1. 使用一个高斯滤波器平滑输入图像；
+ *  2. 计算梯度幅度图像和角度图像；
+ *  3. 对梯度幅度图像应用非极大值抑制；
+ *  4. 使用双阈值处理和连通体分析来检测和连接边缘。
+ *
  * @param src 输入图像；注意 depth 为 8-bit
  * @param dst 输出图像；单通道 8-bit 图像
- * @param threshold1 双阈值迟滞处理（第 4 步）的第一个阈值；minValue
- * @param threshold2 双阈值迟滞处理（第 4 步）的第二个阈值；maxValue
+ * @param threshold1 双阈值迟滞处理的第一个阈值
+ * @param threshold2 双阈值迟滞处理的第二个阈值，通常应满足 "(2 / 1) < (高阈值 / 低阈值) < (3 / 1)"
  * @param apertureSize Sobel's ksize
  * @param L2gradient 标志；指定是否应用更精确的方式计算图像梯度幅值
  * @return None
