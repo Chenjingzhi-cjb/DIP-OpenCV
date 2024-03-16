@@ -10,22 +10,26 @@ pair<double, double> calcImageOffset(Mat &image_tmpl, Mat &image_offset) {
         throw invalid_argument("calcImageOffset() Error: Unable to load image_offset or image_offset loading error!");
     }
 
-    int tmpl_width = image_tmpl.cols;
-    int tmpl_height = image_tmpl.rows;
-    int offset_width = image_offset.cols;
-    int offset_height = image_offset.rows;
+    Mat tmpl_float, offset_float;
+    image_tmpl.convertTo(tmpl_float, CV_32FC1);
+    image_offset.convertTo(offset_float, CV_32FC1);
+
+    int tmpl_width = tmpl_float.cols;
+    int tmpl_height = tmpl_float.rows;
+    int offset_width = offset_float.cols;
+    int offset_height = offset_float.rows;
 
     // 进行模板匹配
     Mat temp;
-    matchTemplate(image_offset, image_tmpl, temp, TM_CCOEFF_NORMED);
+    matchTemplate(offset_float, tmpl_float, temp, TM_CCOEFF_NORMED);
 
     // 定位匹配的位置
     Point max_loc;
     minMaxLoc(temp, nullptr, nullptr, nullptr, &max_loc);
 
     // 使用亚像素级的插值来精确定位模板的中心
-    Point2f subpixel_offset = phaseCorrelate(image_tmpl,
-                                             image_offset(Rect(max_loc.x, max_loc.y, tmpl_width, tmpl_height)));
+    Point2f subpixel_offset = phaseCorrelate(tmpl_float,
+                                             offset_float(Rect(max_loc.x, max_loc.y, tmpl_width, tmpl_height)));
 
     // 返回结果，中心坐标系像素
     pair<double, double> offset_value;
