@@ -3,18 +3,18 @@
 
 void pointDetectLaplaceKernel(Mat &src, Mat &dst) {
     if (src.empty()) {
-        throw invalid_argument("linearSpatialFilter(): Input image is empty!");
+        throw invalid_argument("pointDetectLaplaceKernel(): Input image is empty!");
     }
 
     // 孤立点检测的拉普拉斯核
-     Mat kernel = (Mat_<char>(3, 3) << 1, 1, 1, 1, -8, 1, 1, 1, 1);
+    Mat kernel = (Mat_<char>(3, 3) << 1, 1, 1, 1, -8, 1, 1, 1, 1);
 
     filter2D(src, dst, src.depth(), kernel);
 }
 
 void lineDetectLaplaceKernel(Mat &src, Mat &dst, int line_type) {
     if (src.empty()) {
-        throw invalid_argument("linearSpatialFilter(): Input image is empty!");
+        throw invalid_argument("lineDetectLaplaceKernel(): Input image is empty!");
     }
 
     // 线检测的拉普拉斯核
@@ -33,6 +33,49 @@ void lineDetectLaplaceKernel(Mat &src, Mat &dst, int line_type) {
     }
 
     filter2D(src, dst, src.depth(), kernel);
+}
+
+void lineDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold, double srn, double stn,
+                     double min_theta, double max_theta) {
+    if (src.empty()) {
+        throw invalid_argument("lineDetectHough(): Input image is empty!");
+    }
+
+    vector<Vec2f> lines;
+    HoughLines(src, lines, rho, theta, threshold, srn, stn, min_theta, max_theta);
+
+    Mat temp = src.clone();
+    for (auto &l: lines) {
+        float line_rho = l[0], line_theta = l[1];
+        double a = cos(line_theta), b = sin(line_theta);
+        double x0 = a * line_rho, y0 = b * line_rho;
+
+        Point pt1, pt2;
+        pt1.x = cvRound(x0 + 1000 * (-b));
+        pt1.y = cvRound(y0 + 1000 * (a));
+        pt2.x = cvRound(x0 - 1000 * (-b));
+        pt2.y = cvRound(y0 - 1000 * (a));
+        line(temp, pt1, pt2, Scalar(255, 0, 0), 3);
+    }
+
+    temp.copyTo(dst);
+}
+
+void lineSegmentDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold, double minLineLength,
+                            double maxLineGap) {
+    if (src.empty()) {
+        throw invalid_argument("lineSegmentDetectHough(): Input image is empty!");
+    }
+
+    vector<Vec4i> lines;
+    HoughLinesP(src, lines, rho, theta, threshold, minLineLength, maxLineGap);
+
+    Mat temp = src.clone();
+    for (auto l: lines) {
+        line(temp, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3);
+    }
+
+    temp.copyTo(dst);
 }
 
 void cornerDetectHarris(Mat &src, Mat &dst, int threshold, int blockSize, int ksize, double k, int borderType) {

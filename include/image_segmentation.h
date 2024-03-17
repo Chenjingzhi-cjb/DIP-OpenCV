@@ -35,6 +35,42 @@ void lineDetectLaplaceKernel(Mat &src, Mat &dst, int line_type);
 //      进阶方法：在滤波的基础上增加了对图像噪声和边缘性质等因素的考虑，例如 Canny 算子等
 
 /**
+ * @brief 基于霍夫变换的线检测
+ *
+ * 调用 cv::HoughLines()
+ *
+ * @param src 输入图像；type: CV_8UC1，二值图
+ * @param dst 输出图像
+ * @param rho 极坐标距离分辨率；"距离参数"为直线距离图像左上角点的距离，单位为像素
+ * @param theta 极坐标角度分辨率；"角度参数"为直线与 x 轴的夹角角度，单位为弧度
+ * @param threshold 累加器阈值参数，即直线筛选阈值
+ * @param srn 精确累加器距离分辨率除数，即 accurate_rho = rho / srn
+ * @param stn 精确累加器角度分辨率除数，即 accurate_theta = theta / stn
+ * @param min_theta 最小角度
+ * @param max_theta 最大角度
+ * @return None
+ */
+void lineDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold, double srn = 0, double stn = 0,
+                     double min_theta = 0, double max_theta = CV_PI);
+
+/**
+ * @brief 基于霍夫变换的线段检测
+ *
+ * 调用 cv::HoughLinesP()
+ *
+ * @param src 输入图像；type: CV_8UC1，二值图
+ * @param dst 输出图像
+ * @param rho 极坐标距离分辨率；"距离参数"为直线距离图像左上角点的距离，单位为像素
+ * @param theta 极坐标角度分辨率；"角度参数"为直线与 x 轴的夹角角度，单位为弧度
+ * @param threshold 累加器阈值参数，即直线筛选阈值
+ * @param minLineLength 线段最短长度
+ * @param maxLineGap 线段最大两点间隔
+ * @return None
+ */
+void lineSegmentDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold, double minLineLength = 0,
+                            double maxLineGap = 0);
+
+/**
  * @brief 基于 Harris 算法的角点检测
  *
  * 调用 cv::cornerHarris()

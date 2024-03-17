@@ -303,6 +303,10 @@ void lineDetectLaplaceKernel(Mat &src, Mat &dst, int line_type);  // 基于拉�
 //      基本方法：计算图像的导数，即空间高通滤波，例如 Sobel 算子等；
 //      进阶方法：在滤波的基础上增加了对图像噪声和边缘性质等因素的考虑，例如 Canny 算子等
 
+void lineDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold, double srn = 0, double stn = 0, double min_theta = 0, double max_theta = CV_PI);  // 基于霍夫变换的线检测
+
+void lineSegmentDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold, double minLineLength = 0, double maxLineGap = 0);  // 基于霍夫变换的线段检测
+
 void cornerDetectHarris(Mat &src, Mat &dst, int threshold, int blockSize, int ksize, double k = 0.04, int borderType = BORDER_DEFAULT);  // 基于 Harris 算法的角点检测
 
 void cornerDetectShiTomasi(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, InputArray mask = noArray(), int blockSize = 3);  // 基于 Shi-Tomasi 算法的角点检测
