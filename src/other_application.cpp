@@ -24,8 +24,9 @@ pair<double, double> calcImageOffset(Mat &image_tmpl, Mat &image_offset) {
     matchTemplate(offset_float, tmpl_float, temp, TM_CCOEFF_NORMED);
 
     // 定位匹配的位置
+    double max_val;  // 匹配得分，用于判断是否成功匹配
     Point max_loc;
-    minMaxLoc(temp, nullptr, nullptr, nullptr, &max_loc);
+    minMaxLoc(temp, nullptr, &max_val, nullptr, &max_loc);
 
     // 使用亚像素级的插值来精确定位模板的中心
     Point2f subpixel_offset = phaseCorrelate(tmpl_float,
@@ -111,21 +112,76 @@ double calcSharpnessEnergyScore(const Mat &image) {
     return sum_squared_image[0];
 }
 
+double calcSharpnessOld(cv::Mat *img) {
+    std::vector<cv::Point> points;
+
+    // get points
+    for (int i = 3; i < img->rows - 3; i++) {
+        int row_max_pixel = 0;
+        int row_min_pixel = 255;
+
+        auto *row = img->ptr<uchar>(i);
+        for (int j = 3; j < img->cols - 3; j++) {
+            if (row[j] > row_max_pixel) {
+                row_max_pixel = row[j];
+                points.emplace_back(cv::Point(i, j));
+            }
+            if (row[j] < row_min_pixel) {
+                row_min_pixel = row[j];
+                points.emplace_back(cv::Point(i, j));
+            }
+        }
+    }
+
+    // calculate value
+    double S_vertical = 0, S_horizontal = 0;
+    for (auto &i : points) {
+        double vertical_gradient, horizontal_gradient;
+        int col_no = i.y;
+        int row_no = i.x;
+
+        auto *plus_last_row = img->ptr<uchar>(row_no - 2);
+        auto *last_row = img->ptr<uchar>(row_no - 1);
+        auto *current_row = img->ptr<uchar>(row_no);
+        auto *next_row = img->ptr<uchar>(row_no + 1);
+        auto *plus_next_row = img->ptr<uchar>(row_no + 2);
+
+        vertical_gradient =
+                -plus_last_row[col_no - 2] - plus_last_row[col_no + 2] - last_row[col_no - 1] - last_row[col_no + 1] -
+                last_row[col_no] + next_row[col_no - 1] + next_row[col_no] + next_row[col_no + 1] +
+                plus_next_row[col_no - 2] + plus_next_row[col_no + 2];
+        horizontal_gradient =
+                -plus_last_row[col_no - 2] + plus_last_row[col_no + 2] - last_row[col_no - 1] + last_row[col_no + 1] -
+                current_row[col_no - 1] + current_row[col_no + 1] - next_row[col_no - 1] + next_row[col_no + 1] -
+                plus_next_row[col_no - 2] + plus_next_row[col_no + 2];
+
+        S_vertical += fabs(vertical_gradient);
+        S_horizontal += fabs(horizontal_gradient);
+    }
+    double S = S_vertical / (int) points.size() + S_horizontal / (int) points.size();
+
+    return S;
+}
+
 double calcImageSharpness(Mat &image) {
     if (image.empty()) {
         throw invalid_argument("calcImageSharpness(): Input image is empty!");
     }
 
     double gradient_score = calcSharpnessGradientScore(image);  // 梯度方法
-    double variance_score = calcSharpnessVarianceScore(image);  // 方差方法
-    double spectrum_score = calcSharpnessSpectrumScore(image);  // 频谱方法
-    double energy_score = calcSharpnessEnergyScore(image);      // 能量方法
+//    double variance_score = calcSharpnessVarianceScore(image);  // 方差方法
+//    double spectrum_score = calcSharpnessSpectrumScore(image);  // 频谱方法
+//    double energy_score = calcSharpnessEnergyScore(image);      // 能量方法
+
+    double old_score = calcSharpnessOld(&image);
 
     // 输出清晰度值
     cout << "Gradient Score: " << gradient_score << endl;
-    cout << "Variance Score: " << variance_score << endl;
-    cout << "Spectrum Score: " << spectrum_score << endl;
-    cout << "Energy Score: " << energy_score << endl;
+//    cout << "Variance Score: " << variance_score << endl;
+//    cout << "Spectrum Score: " << spectrum_score << endl;
+//    cout << "Energy Score: " << energy_score << endl;
+
+    cout << "Gradient Score: " << old_score << endl;
 
     return gradient_score;
 }
