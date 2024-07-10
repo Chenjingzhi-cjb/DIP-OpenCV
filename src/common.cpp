@@ -126,3 +126,24 @@ void videoTraverse(VideoCapture &video) {
         // ...
     }
 }
+
+void getAndPrintTime() {
+    // 获取当前时间点
+    auto now = std::chrono::system_clock::now();
+
+    // 转换为时间点自 1970-01-01 00:00:00 UTC 起经过的时间
+    auto duration = now.time_since_epoch();
+
+    // 转换为秒和微秒
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
+    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(duration)
+                        - std::chrono::duration_cast<std::chrono::microseconds>(seconds);
+
+    // 将时间点转换为 time_t 以便进行时间格式化
+    std::time_t time_t_seconds = std::chrono::system_clock::to_time_t(now);
+
+    // 格式化输出时间戳
+    std::tm* tm_ptr = std::localtime(&time_t_seconds);
+    std::cout << std::put_time(tm_ptr, "%Y-%m-%d %H:%M:%S") << '.'
+              << std::setfill('0') << std::setw(6) << microseconds.count() << std::endl;
+}

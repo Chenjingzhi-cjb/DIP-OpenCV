@@ -35,5 +35,12 @@ void printImageData(const Mat &image, Size shrink_size = Size(64, 64), int previ
  */
 void videoTraverse(VideoCapture &video);
 
+/**
+ * @brief 获取并打印时间戳
+ *
+ * @return None
+ */
+void getAndPrintTime();
+
 
 #endif //DIP_OPENCV_COMMON_H

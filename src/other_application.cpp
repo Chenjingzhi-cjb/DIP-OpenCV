@@ -112,26 +112,189 @@ double calcSharpnessEnergyScore(const Mat &image) {
     return sum_squared_image[0];
 }
 
-double calcSharpnessOld(cv::Mat *img) {
+double calcImageSharpness(Mat &image) {
+    if (image.empty()) {
+        throw invalid_argument("calcImageSharpness(): Input image is empty!");
+    }
+
+    double gradient_score = calcSharpnessGradientScore(image);  // 梯度方法
+//    double variance_score = calcSharpnessVarianceScore(image);  // 方差方法
+//    double spectrum_score = calcSharpnessSpectrumScore(image);  // 频谱方法
+//    double energy_score = calcSharpnessEnergyScore(image);      // 能量方法
+
+    // 输出清晰度值
+    cout << "Gradient Score: " << gradient_score << endl;
+//    cout << "Variance Score: " << variance_score << endl;
+//    cout << "Spectrum Score: " << spectrum_score << endl;
+//    cout << "Energy Score: " << energy_score << endl;
+
+    return gradient_score;
+}
+
+double calcSharpnessOldOpt(cv::Mat *image) {
     std::vector<cv::Point> points;
 
     // get points
-    for (int i = 3; i < img->rows - 3; i++) {
+    for (int i = 3; i < image->rows - 3; i++) {
         int row_max_pixel = 0;
         int row_min_pixel = 255;
 
-        auto *row = img->ptr<uchar>(i);
-        for (int j = 3; j < img->cols - 3; j++) {
+        auto *row = image->ptr<uchar>(i);
+
+        /* old
+        for (int j = 3; j < image->cols - 3; j++) {
+            bool is_max = false, is_min = false;
+
             if (row[j] > row_max_pixel) {
                 row_max_pixel = row[j];
-                points.emplace_back(cv::Point(i, j));
+                is_max = true;
             }
             if (row[j] < row_min_pixel) {
                 row_min_pixel = row[j];
+                is_min = true;
+            }
+
+            if (is_max || is_min) {
                 points.emplace_back(cv::Point(i, j));
+//                image->at<uchar>(i, j) = 80;  // see points
             }
         }
+        */
+
+#if 1
+
+        // get points opt
+        for (int j = image->cols / 2; j > 2; j--) {
+            bool is_max = false, is_min = false;
+
+            if (row[j] > row_max_pixel) {
+                row_max_pixel = row[j];
+                is_max = true;
+            }
+            if (row[j] < row_min_pixel) {
+                row_min_pixel = row[j];
+                is_min = true;
+            }
+
+            if (is_max || is_min) {
+                points.emplace_back(cv::Point(i, j));
+//                image->at<uchar>(i, j) = 80;  // see points
+            }
+        }
+
+        row_max_pixel = 0;
+        row_min_pixel = 255;
+
+        for (int j = image->cols / 2; j < image->cols - 3; j++) {
+            bool is_max = false, is_min = false;
+
+            if (row[j] > row_max_pixel) {
+                row_max_pixel = row[j];
+                is_max = true;
+            }
+            if (row[j] < row_min_pixel) {
+                row_min_pixel = row[j];
+                is_min = true;
+            }
+
+            if (is_max || is_min) {
+                points.emplace_back(cv::Point(i, j));
+//                image->at<uchar>(i, j) = 80;  // see points
+            }
+        }
+
+#else
+
+        // get points opt+
+        for (int j = 3; j < image->cols / 4; j++) {
+            bool is_max = false, is_min = false;
+
+            if (row[j] > row_max_pixel) {
+                row_max_pixel = row[j];
+                is_max = true;
+            }
+            if (row[j] < row_min_pixel) {
+                row_min_pixel = row[j];
+                is_min = true;
+            }
+
+            if (is_max || is_min) {
+                points.emplace_back(cv::Point(i, j));
+//                image->at<uchar>(i, j) = 80;  // see points
+            }
+        }
+
+        row_max_pixel = 0;
+        row_min_pixel = 255;
+
+        for (int j = image->cols / 2; j > image->cols / 4; j--) {
+            bool is_max = false, is_min = false;
+
+            if (row[j] > row_max_pixel) {
+                row_max_pixel = row[j];
+                is_max = true;
+            }
+            if (row[j] < row_min_pixel) {
+                row_min_pixel = row[j];
+                is_min = true;
+            }
+
+            if (is_max || is_min) {
+                points.emplace_back(cv::Point(i, j));
+//                image->at<uchar>(i, j) = 80;  // see points
+            }
+        }
+
+        row_max_pixel = 0;
+        row_min_pixel = 255;
+
+        for (int j = image->cols / 2; j < image->cols * 3 / 4; j++) {
+            bool is_max = false, is_min = false;
+
+            if (row[j] > row_max_pixel) {
+                row_max_pixel = row[j];
+                is_max = true;
+            }
+            if (row[j] < row_min_pixel) {
+                row_min_pixel = row[j];
+                is_min = true;
+            }
+
+            if (is_max || is_min) {
+                points.emplace_back(cv::Point(i, j));
+//                image->at<uchar>(i, j) = 80;  // see points
+            }
+        }
+
+        row_max_pixel = 0;
+        row_min_pixel = 255;
+
+        for (int j = image->cols - 4; j > image->cols * 3 / 4; j--) {
+            bool is_max = false, is_min = false;
+
+            if (row[j] > row_max_pixel) {
+                row_max_pixel = row[j];
+                is_max = true;
+            }
+            if (row[j] < row_min_pixel) {
+                row_min_pixel = row[j];
+                is_min = true;
+            }
+
+            if (is_max || is_min) {
+                points.emplace_back(cv::Point(i, j));
+//                image->at<uchar>(i, j) = 80;  // see points
+            }
+        }
+
+#endif
+
     }
+
+    // see points
+//    cv::namedWindow("image", cv::WINDOW_AUTOSIZE);
+//    cv::imshow("image", *image);
+//    cv::waitKey(0);
 
     // calculate value
     double S_vertical = 0, S_horizontal = 0;
@@ -140,11 +303,11 @@ double calcSharpnessOld(cv::Mat *img) {
         int col_no = i.y;
         int row_no = i.x;
 
-        auto *plus_last_row = img->ptr<uchar>(row_no - 2);
-        auto *last_row = img->ptr<uchar>(row_no - 1);
-        auto *current_row = img->ptr<uchar>(row_no);
-        auto *next_row = img->ptr<uchar>(row_no + 1);
-        auto *plus_next_row = img->ptr<uchar>(row_no + 2);
+        auto *plus_last_row = image->ptr<uchar>(row_no - 2);
+        auto *last_row = image->ptr<uchar>(row_no - 1);
+        auto *current_row = image->ptr<uchar>(row_no);
+        auto *next_row = image->ptr<uchar>(row_no + 1);
+        auto *plus_next_row = image->ptr<uchar>(row_no + 2);
 
         vertical_gradient =
                 -plus_last_row[col_no - 2] - plus_last_row[col_no + 2] - last_row[col_no - 1] - last_row[col_no + 1] -
@@ -160,28 +323,9 @@ double calcSharpnessOld(cv::Mat *img) {
     }
     double S = S_vertical / (int) points.size() + S_horizontal / (int) points.size();
 
+//    std::cout << (int) points.size() << std::endl;
+//    std::cout << S << std::endl;
+//    getAndPrintTime();
+
     return S;
-}
-
-double calcImageSharpness(Mat &image) {
-    if (image.empty()) {
-        throw invalid_argument("calcImageSharpness(): Input image is empty!");
-    }
-
-    double gradient_score = calcSharpnessGradientScore(image);  // 梯度方法
-//    double variance_score = calcSharpnessVarianceScore(image);  // 方差方法
-//    double spectrum_score = calcSharpnessSpectrumScore(image);  // 频谱方法
-//    double energy_score = calcSharpnessEnergyScore(image);      // 能量方法
-
-    double old_score = calcSharpnessOld(&image);
-
-    // 输出清晰度值
-    cout << "Gradient Score: " << gradient_score << endl;
-//    cout << "Variance Score: " << variance_score << endl;
-//    cout << "Spectrum Score: " << spectrum_score << endl;
-//    cout << "Energy Score: " << energy_score << endl;
-
-    cout << "Gradient Score: " << old_score << endl;
-
-    return gradient_score;
 }

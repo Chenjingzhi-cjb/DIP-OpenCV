@@ -31,5 +31,12 @@ pair<double, double> calcImageOffset(Mat &image_std, Mat &image_offset, double t
  */
 double calcImageSharpness(Mat &image);
 
+/**
+ * @brief 计算图像清晰度值（优化版）
+ *
+ * @param image 输入图像
+ * @return The sharpness score of image
+ */
+double calcSharpnessOldOpt(cv::Mat *image);
 
 #endif //DIP_OPENCV_OTHER_APPLICATION_H
