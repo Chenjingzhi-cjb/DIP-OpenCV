@@ -131,7 +131,9 @@ double calcImageSharpness(Mat &image) {
     return gradient_score;
 }
 
-double calcSharpnessOldOpt(cv::Mat *image) {
+double calcSharpnessOldOpt(cv::Mat *image, int part_count) {
+    if (part_count % 2 != 0) return 0;
+
     std::vector<cv::Point> points;
 
     // get points
@@ -161,134 +163,64 @@ double calcSharpnessOldOpt(cv::Mat *image) {
         }
         */
 
-#if 1
+        // get points opt++
+        int start_j, end_j;
 
-        // get points opt
-        for (int j = image->cols / 2; j > 2; j--) {
-            bool is_max = false, is_min = false;
+        // left
+        for (int part_num = part_count / 2; part_num > 0; part_num--) {
+            row_max_pixel = 0;
+            row_min_pixel = 255;
 
-            if (row[j] > row_max_pixel) {
-                row_max_pixel = row[j];
-                is_max = true;
-            }
-            if (row[j] < row_min_pixel) {
-                row_min_pixel = row[j];
-                is_min = true;
-            }
+            start_j = image->cols * part_num / part_count;
+            end_j = image->cols * (part_num - 1) / part_count;
+            if (part_num == 1) end_j = 2;
 
-            if (is_max || is_min) {
-                points.emplace_back(cv::Point(i, j));
-//                image->at<uchar>(i, j) = 80;  // see points
-            }
-        }
+            for (int j = start_j; j > end_j; j--) {
+                bool is_max = false, is_min = false;
 
-        row_max_pixel = 0;
-        row_min_pixel = 255;
+                if (row[j] > row_max_pixel) {
+                    row_max_pixel = row[j];
+                    is_max = true;
+                }
+                if (row[j] < row_min_pixel) {
+                    row_min_pixel = row[j];
+                    is_min = true;
+                }
 
-        for (int j = image->cols / 2; j < image->cols - 3; j++) {
-            bool is_max = false, is_min = false;
-
-            if (row[j] > row_max_pixel) {
-                row_max_pixel = row[j];
-                is_max = true;
-            }
-            if (row[j] < row_min_pixel) {
-                row_min_pixel = row[j];
-                is_min = true;
-            }
-
-            if (is_max || is_min) {
-                points.emplace_back(cv::Point(i, j));
-//                image->at<uchar>(i, j) = 80;  // see points
+                if (is_max || is_min) {
+                    points.emplace_back(cv::Point(i, j));
+//                    image->at<uchar>(i, j) = 80;  // see points
+                }
             }
         }
 
-#else
+        // right
+        for (int part_num = part_count / 2; part_num < part_count; part_num++) {
+            row_max_pixel = 0;
+            row_min_pixel = 255;
 
-        // get points opt+
-        for (int j = 3; j < image->cols / 4; j++) {
-            bool is_max = false, is_min = false;
+            start_j = image->cols * part_num / part_count;
+            end_j = image->cols * (part_num + 1) / part_count;
+            if (part_num == part_count - 1) end_j = image->cols - 3;
 
-            if (row[j] > row_max_pixel) {
-                row_max_pixel = row[j];
-                is_max = true;
-            }
-            if (row[j] < row_min_pixel) {
-                row_min_pixel = row[j];
-                is_min = true;
-            }
+            for (int j = start_j; j < end_j; j++) {
+                bool is_max = false, is_min = false;
 
-            if (is_max || is_min) {
-                points.emplace_back(cv::Point(i, j));
-//                image->at<uchar>(i, j) = 80;  // see points
-            }
-        }
+                if (row[j] > row_max_pixel) {
+                    row_max_pixel = row[j];
+                    is_max = true;
+                }
+                if (row[j] < row_min_pixel) {
+                    row_min_pixel = row[j];
+                    is_min = true;
+                }
 
-        row_max_pixel = 0;
-        row_min_pixel = 255;
-
-        for (int j = image->cols / 2; j > image->cols / 4; j--) {
-            bool is_max = false, is_min = false;
-
-            if (row[j] > row_max_pixel) {
-                row_max_pixel = row[j];
-                is_max = true;
-            }
-            if (row[j] < row_min_pixel) {
-                row_min_pixel = row[j];
-                is_min = true;
-            }
-
-            if (is_max || is_min) {
-                points.emplace_back(cv::Point(i, j));
-//                image->at<uchar>(i, j) = 80;  // see points
+                if (is_max || is_min) {
+                    points.emplace_back(cv::Point(i, j));
+//                    image->at<uchar>(i, j) = 80;  // see points
+                }
             }
         }
-
-        row_max_pixel = 0;
-        row_min_pixel = 255;
-
-        for (int j = image->cols / 2; j < image->cols * 3 / 4; j++) {
-            bool is_max = false, is_min = false;
-
-            if (row[j] > row_max_pixel) {
-                row_max_pixel = row[j];
-                is_max = true;
-            }
-            if (row[j] < row_min_pixel) {
-                row_min_pixel = row[j];
-                is_min = true;
-            }
-
-            if (is_max || is_min) {
-                points.emplace_back(cv::Point(i, j));
-//                image->at<uchar>(i, j) = 80;  // see points
-            }
-        }
-
-        row_max_pixel = 0;
-        row_min_pixel = 255;
-
-        for (int j = image->cols - 4; j > image->cols * 3 / 4; j--) {
-            bool is_max = false, is_min = false;
-
-            if (row[j] > row_max_pixel) {
-                row_max_pixel = row[j];
-                is_max = true;
-            }
-            if (row[j] < row_min_pixel) {
-                row_min_pixel = row[j];
-                is_min = true;
-            }
-
-            if (is_max || is_min) {
-                points.emplace_back(cv::Point(i, j));
-//                image->at<uchar>(i, j) = 80;  // see points
-            }
-        }
-
-#endif
-
     }
 
     // see points

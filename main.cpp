@@ -25,7 +25,7 @@ int main() {
                 Mat image = imread(image_path, 0);
                 cv::resize(image, image, Size(image.cols / 4, image.rows / 4));
 
-                double S = calcSharpnessOldOpt(&image);
+                double S = calcSharpnessOldOpt(&image, 4);
                 std::cout << "value: " << S << std::endl;
             }
         } while (FindNextFile(file_handle, &file_info) != 0);  // 处理下一个，存在则返回值不为 0

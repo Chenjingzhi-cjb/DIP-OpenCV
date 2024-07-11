@@ -35,8 +35,9 @@ double calcImageSharpness(Mat &image);
  * @brief 计算图像清晰度值（优化版）
  *
  * @param image 输入图像
+ * @param part_count 分区数量，其值应为 >2 的偶数
  * @return The sharpness score of image
  */
-double calcSharpnessOldOpt(cv::Mat *image);
+double calcSharpnessOldOpt(cv::Mat *image, int part_count);
 
 #endif //DIP_OPENCV_OTHER_APPLICATION_H
