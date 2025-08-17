@@ -28,7 +28,7 @@ pair<double, double> calcImageOffset(Mat &image_tmpl, Mat &image_offset) {
     Point max_loc;
     minMaxLoc(temp, nullptr, &max_val, nullptr, &max_loc);
 
-    // 使用亚像素级的插值来精确定位模板的中心
+    // 使用基于“FFT相位相关”和“加权质心亚像素插值”的算法来精确定位模板的中心
     Point2f subpixel_offset = phaseCorrelate(tmpl_float,
                                              offset_float(Rect(max_loc.x, max_loc.y, tmpl_width, tmpl_height)));
 
@@ -230,7 +230,7 @@ double calcSharpnessOldOpt(cv::Mat *image, int part_count) {
 
     // calculate value
     double S_vertical = 0, S_horizontal = 0;
-    for (auto &i : points) {
+    for (auto &i: points) {
         double vertical_gradient, horizontal_gradient;
         int col_no = i.y;
         int row_no = i.x;

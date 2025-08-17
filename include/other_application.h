@@ -40,4 +40,5 @@ double calcImageSharpness(Mat &image);
  */
 double calcSharpnessOldOpt(cv::Mat *image, int part_count);
 
+
 #endif //DIP_OPENCV_OTHER_APPLICATION_H
