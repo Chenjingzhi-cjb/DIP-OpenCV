@@ -1,69 +1,209 @@
 #include "other_application.h"
 
 
-pair<double, double> calcImageOffset(Mat &image_tmpl, Mat &image_offset) {
-    if (image_tmpl.empty()) {
-        throw invalid_argument("calcImageOffset() Error: Unable to load image_tmpl or image_tmpl loading error!");
+// Phase Correlation
+cv::Point2d
+matchTemplateSubPixelByPhaseCorrelation(const cv::Mat &image_tmpl, const cv::Mat &image_dst, const cv::Point &max_loc) {
+    if (max_loc.x + image_tmpl.cols > image_dst.cols || max_loc.y + image_tmpl.rows > image_dst.rows) {
+        std::cout << "calcTemplatePosition() Error: The max_roi out of bounds for phase correlation" << std::endl;
+        return {0.0, 0.0};
     }
 
-    if (image_offset.empty()) {
-        throw invalid_argument("calcImageOffset() Error: Unable to load image_offset or image_offset loading error!");
+    cv::Mat tmpl_32FC1, dst_32FC1;
+    image_tmpl.convertTo(tmpl_32FC1, CV_32F);
+    image_dst.convertTo(dst_32FC1, CV_32F);
+    if (tmpl_32FC1.channels() > 1) {
+        cv::cvtColor(tmpl_32FC1, tmpl_32FC1, cv::COLOR_BGR2GRAY);
+    }
+    if (dst_32FC1.channels() > 1) {
+        cv::cvtColor(dst_32FC1, dst_32FC1, cv::COLOR_BGR2GRAY);
     }
 
-    Mat tmpl_float, offset_float;
-    image_tmpl.convertTo(tmpl_float, CV_32FC1);
-    image_offset.convertTo(offset_float, CV_32FC1);
+    // 使用基于“FFT相位相关”和“加权质心亚像素插值”的算法来进行精确定位
+    cv::Rect max_roi(max_loc.x, max_loc.y, image_tmpl.cols, image_tmpl.rows);
+    cv::Point2d subpixel_offset = cv::phaseCorrelate(dst_32FC1(max_roi), tmpl_32FC1);
 
-    int tmpl_width = tmpl_float.cols;
-    int tmpl_height = tmpl_float.rows;
-    int offset_width = offset_float.cols;
-    int offset_height = offset_float.rows;
+    return subpixel_offset;
+}
+
+// Corner - Grayscale Centroid Iterative Fitting
+cv::Point2d matchTemplateSubPixelByCorner(const cv::Mat &result, const cv::Point &max_loc) {
+    int criteria_maxCount = 40;
+    double criteria_epsilon = 0.01;
+
+    cv::Size winSize(5, 5);
+    cv::Size zeroZone(-1, -1);
+
+    if (max_loc.x > 2 && max_loc.x < result.cols - 2 && max_loc.y > 2 && max_loc.y < result.rows - 2) {
+        // 归一化
+        cv::Mat result_norm;
+        cv::normalize(result, result_norm, 0, 255, cv::NORM_MINMAX, CV_32F);
+
+        // 设置初始点
+        std::vector<cv::Point2f> corners{cv::Point2f((float) max_loc.x, (float) max_loc.y)};
+
+        // 设置迭代停止条件
+        cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, criteria_maxCount,
+                                  criteria_epsilon);
+
+        // 进行迭代优化
+        cv::cornerSubPix(result_norm, corners, winSize, zeroZone, criteria);
+
+        // 统一返回增量
+        return {corners[0].x - (float) max_loc.x, corners[0].y - (float) max_loc.y};
+    } else {
+        std::cout << "calcTemplatePosition() Error: Peak too close to edge, skipping sub-pixel refinement."
+                  << std::endl;
+    }
+
+    return {0.0, 0.0};
+}
+
+// Quadratic Curve Interpolation Fitting
+cv::Point2d matchTemplateSubPixelByQuadInterp(const cv::Mat &result, const cv::Point &max_loc) {
+    // 确保 max_loc 不在边界
+    if (max_loc.x > 0 && max_loc.x < result.cols - 1 && max_loc.y > 0 && max_loc.y < result.rows - 1) {
+        // 提取 中心点 和 X、Y 方向邻域 的 响应值
+        float center = result.at<float>(max_loc.y, max_loc.x);
+        float left = result.at<float>(max_loc.y, max_loc.x - 1);
+        float right = result.at<float>(max_loc.y, max_loc.x + 1);
+        float up = result.at<float>(max_loc.y - 1, max_loc.x);
+        float down = result.at<float>(max_loc.y + 1, max_loc.x);
+
+        // 计算 X 方向的亚像素偏移，注意如果分母接近0，说明曲线是平的或线性的，无法计算偏移
+        double dx = 0.0;
+        double denominator_x = 2 * (left - 2 * center + right);
+        if (std::abs(denominator_x) > 1e-6) {
+            dx = (left - right) / denominator_x;
+        }
+
+        // 计算 Y 方向的亚像素偏移，注意如果分母接近0，说明曲线是平的或线性的，无法计算偏移
+        double dy = 0.0;
+        double denominator_y = 2 * (up - 2 * center + down);
+        if (std::abs(denominator_y) > 1e-6) {
+            dy = (up - down) / denominator_y;
+        }
+
+        // 计算结果检查，偏移量应该在 [-0.5, 0.5] 范围内，如果超出，说明该峰值可能不是真正的极值点
+        if (std::abs(dx) <= 0.5 && std::abs(dy) <= 0.5) {
+            return {dx, dy};
+        }
+    } else {
+        std::cout << "calcTemplatePosition() Error: Peak is on the edge, cannot perform sub-pixel refinement."
+                  << std::endl;
+    }
+
+    return {0.0, 0.0};
+}
+
+// 2D Gaussian Fitting
+cv::Point2d matchTemplateSubPixelByGaussian(const cv::Mat &result, const cv::Point &max_loc) {
+    // 确保 max_loc 不在边界
+    if (max_loc.x > 0 && max_loc.x < result.cols - 1 && max_loc.y > 0 && max_loc.y < result.rows - 1) {
+        // 提取 3x3 的邻域
+        cv::Mat patch = result(cv::Rect(max_loc.x - 1, max_loc.y - 1, 3, 3)).clone();
+
+        // 对数变换前先检查所有值是否为正，如果有负值或零值则进行偏移使所有值为正
+        double min_patch_val;
+        cv::minMaxLoc(patch, &min_patch_val, nullptr, nullptr, nullptr);
+        if (min_patch_val <= 0) {
+            patch += (-min_patch_val + 1e-3);
+        }
+
+        // 对数变换
+        cv::Mat log_patch;
+        cv::log(patch, log_patch);
+
+        // 使用中心差分近似求二阶偏导
+        double dx = 0.5 * (log_patch.at<float>(1, 2) - log_patch.at<float>(1, 0));
+        double dy = 0.5 * (log_patch.at<float>(2, 1) - log_patch.at<float>(0, 1));
+        double dxx = log_patch.at<float>(1, 0) - 2 * log_patch.at<float>(1, 1) + log_patch.at<float>(1, 2);
+        double dyy = log_patch.at<float>(0, 1) - 2 * log_patch.at<float>(1, 1) + log_patch.at<float>(2, 1);
+        double dxy = 0.25 * (log_patch.at<float>(2, 2) - log_patch.at<float>(2, 0) - log_patch.at<float>(0, 2) +
+                             log_patch.at<float>(0, 0));
+
+        // 检查 Hessian 矩阵是否为负定（确保是极大值点）
+        double det = dxx * dyy - dxy * dxy;
+        if (det > 1e-6 && dxx < -1e-6 && dyy < -1e-6) {  // 负定矩阵条件
+            try {
+                // 解二次曲面极值位置: H * delta = -grad
+                cv::Matx22d H(dxx, dxy, dxy, dyy);
+                cv::Vec2d g(dx, dy);
+                cv::Vec2d delta = -H.solve(g, cv::DECOMP_SVD);
+
+                // 限制偏移量在合理范围内
+                if (std::abs(delta[0]) <= 0.5 && std::abs(delta[1]) <= 0.5) {
+                    return {delta[0], delta[1]};
+                }
+            } catch (const cv::Exception &e) {
+                std::cout << "calcTemplatePosition() Error: Matrix solve failed: " << e.what() << std::endl;
+            }
+        }
+    } else {
+        std::cout << "calcTemplatePosition() Error: Peak is on the edge, cannot perform sub-pixel refinement."
+                  << std::endl;
+    }
+
+    return {0.0, 0.0};
+}
+
+double
+calcTemplatePosition(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Point2d &position, bool sub_pixel) {
+    if (image_tmpl.empty() || image_dst.empty()) {
+        throw std::invalid_argument("calcTemplatePosition() Error: Input image is empty!");
+    }
+
+    if (image_tmpl.cols > image_dst.cols || image_tmpl.rows > image_dst.rows) {
+        throw std::invalid_argument(
+                "calcTemplatePosition() Error: Template dimensions must be smaller than or equal to the destination image.");
+    }
 
     // 进行模板匹配
-    Mat temp;
-    matchTemplate(offset_float, tmpl_float, temp, TM_CCOEFF_NORMED);
+    cv::Mat result;
+    cv::matchTemplate(image_dst, image_tmpl, result, cv::TM_CCOEFF_NORMED);
 
     // 定位匹配的位置
     double max_val;  // 匹配得分，用于判断是否成功匹配
-    Point max_loc;
-    minMaxLoc(temp, nullptr, &max_val, nullptr, &max_loc);
+    cv::Point max_loc;
+    cv::minMaxLoc(result, nullptr, &max_val, nullptr, &max_loc);
 
-    // 使用基于“FFT相位相关”和“加权质心亚像素插值”的算法来精确定位模板的中心
-    Point2f subpixel_offset = phaseCorrelate(tmpl_float,
-                                             offset_float(Rect(max_loc.x, max_loc.y, tmpl_width, tmpl_height)));
+    double position_x = max_loc.x;
+    double position_y = max_loc.y;
 
-    // 返回结果，中心坐标系像素
-    pair<double, double> offset_value;
-    offset_value.first = ((double) max_loc.x + subpixel_offset.x) - (int) ((offset_width - tmpl_width) / 2);
-    offset_value.second = (int) ((offset_height - tmpl_height) / 2) - ((double) max_loc.y + subpixel_offset.y);
+    // 亚像素级
+    if (sub_pixel) {
+        cv::Point2d subpixel_offset = matchTemplateSubPixelByQuadInterp(result, max_loc);
+//        cv::Point2d subpixel_offset = matchTemplateSubPixelByGaussian(result, max_loc);
 
-    return offset_value;
+        position_x += subpixel_offset.x;
+        position_y += subpixel_offset.y;
+    }
+
+    // 计算结果，中心坐标系像素
+    position.x = position_x - (image_dst.cols - image_tmpl.cols) / 2.0;
+    position.y = (image_dst.rows - image_tmpl.rows) / 2.0 - position_y;
+
+    return max_val;
 }
 
-pair<double, double> calcImageOffset(Mat &image_std, Mat &image_offset, double tmpl_divisor) {
-    if (image_std.empty()) {
-        throw invalid_argument("calcImageOffset() Error: Unable to load image_std or image_std loading error!");
+double calcImageOffset(const cv::Mat &image_src, const cv::Mat &image_dst, cv::Point2d &offset) {
+    if (image_src.empty() || image_dst.empty()) {
+        throw std::invalid_argument("calcImageOffset() Error: Input image is empty!");
     }
 
-    if (image_offset.empty()) {
-        throw invalid_argument("calcImageOffset() Error: Unable to load image_offset or image_offset loading error!");
+    if (image_src.size() != image_dst.size()) {
+        throw std::invalid_argument("calcImageOffset() Error: Input images must have the same dimensions.");
     }
 
-    if (tmpl_divisor <= 1) {
-        throw invalid_argument("calcImageOffset() Error: Parameter tmpl_divisor must be > 1!");
-    }
+    // 使用基于“FFT相位相关”和“加权质心亚像素插值”的算法来计算偏移量
+    double response;
+    cv::Point2f subpixel_offset = cv::phaseCorrelate(image_src, image_dst, cv::noArray(), &response);
 
-    int std_width = image_std.cols;
-    int std_height = image_std.rows;
+    // 返回结果，中心坐标系像素
+    offset.x = subpixel_offset.x;
+    offset.y = -subpixel_offset.y;
 
-    // 从标准图像中截取中心模板
-    int tmpl_width = (int) (std_width / tmpl_divisor);
-    int tmpl_height = (int) (std_height / tmpl_divisor);
-    Mat image_tmpl = image_std(
-            Rect((std_width - tmpl_width) / 2, (std_height - tmpl_height) / 2, tmpl_width, tmpl_height));
-
-    // 计算图像偏移
-    return calcImageOffset(image_tmpl, image_offset);
+    return response;
 }
 
 // 计算图像的清晰度值（梯度方法）

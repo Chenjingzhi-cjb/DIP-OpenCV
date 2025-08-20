@@ -5,23 +5,26 @@
 
 
 /**
- * @brief 计算图像偏移
+ * @brief 计算模板在目标图像中的位置（中心坐标系）
  *
- * @param image_tmpl 模板图像
- * @param image_offset 偏移图像
- * @return The offset of the image_tmpl in the image_offset (the result is in the central coordinate system)
+ * @param image_tmpl 模板图像; type: CV_8UC1 or CV_8UC3 or CV_32FC1 or CV_32FC3
+ * @param image_dst 目标图像; type: 与 image_tmpl 保持一致
+ * @param position 计算结果 - 位置坐标
+ * @param sub_pixel 是否使用亚像素级算法
+ * @return match score
  */
-pair<double, double> calcImageOffset(Mat &image_tmpl, Mat &image_offset);
+double calcTemplatePosition(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Point2d &position,
+                            bool sub_pixel = false);
 
 /**
- * @brief 计算图像偏移
+ * @brief 计算目标图像相对于原图像的位移（中心坐标系）
  *
- * @param image_std 标准图像
- * @param image_offset 偏移图像
- * @param tmpl_divisor 模板除数，中心模板截取尺寸 = 标准图像尺寸 / 模板除数，其值必须 > 1
- * @return The offset of image_offset relative to image_std (the result is in the central coordinate system)
+ * @param image_src 原图像; type: CV_32FC1 or CV_64FC1
+ * @param image_dst 目标图像; type: 与 image_src 保持一致
+ * @param offset 计算结果 - 位移量
+ * @return confidence
  */
-pair<double, double> calcImageOffset(Mat &image_std, Mat &image_offset, double tmpl_divisor);
+double calcImageOffset(const cv::Mat &image_src, const cv::Mat &image_dst, cv::Point2d &offset);
 
 /**
  * @brief 计算图像清晰度值
