@@ -183,7 +183,7 @@ calcTemplatePosition(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Po
     position.x = position_x - (image_dst.cols - image_tmpl.cols) / 2.0;
     position.y = (image_dst.rows - image_tmpl.rows) / 2.0 - position_y;
 
-    return max_val;
+    return ((max_val + 1.0) / 2.0);  // [0, 1]
 }
 
 double calcImageOffset(const cv::Mat &image_src, const cv::Mat &image_dst, cv::Point2d &offset) {
@@ -204,6 +204,232 @@ double calcImageOffset(const cv::Mat &image_src, const cv::Mat &image_dst, cv::P
     offset.y = -subpixel_offset.y;
 
     return response;
+}
+
+double calcTemplatePositionByMatches(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Point2d &position,
+                                     double *scale, double *angle, std::vector<cv::KeyPoint> &key_points_tmpl,
+                                     std::vector<cv::KeyPoint> &key_points_dst, std::vector<cv::DMatch> &good_matches,
+                                     bool show_matches = false) {
+    if (good_matches.size() < 4) {
+        std::cout << "calcTemplatePositionByMatches() Error: Not enough good matches to estimate transform."
+                  << std::endl;
+        return 0;
+    }
+
+    // 提取优质匹配点的位置
+    std::vector<cv::Point2f> good_points_tmpl, good_points_dst;
+    for (const auto &good_match : good_matches) {
+        good_points_tmpl.push_back(key_points_tmpl[good_match.queryIdx].pt);
+        good_points_dst.push_back(key_points_dst[good_match.trainIdx].pt);
+    }
+
+    // 匹配可视化
+    if (show_matches) {
+        cv::Mat image_matches;
+        cv::drawMatches(image_tmpl, key_points_tmpl, image_dst, key_points_dst, good_matches, image_matches,
+                        cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>(),
+                        cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+        cv::imshow("Good Matches", image_matches);
+        cv::waitKey(0);
+    }
+
+    // 使用 RANSAC 算法估计仿射变换矩阵 M
+    // dst_pt = M * tmpl_pt
+    std::vector<uchar> inliers_mask;
+    cv::Mat M = cv::estimateAffinePartial2D(good_points_tmpl, good_points_dst, inliers_mask);
+
+    if (M.empty()) {
+        std::cout << "calcTemplatePositionByMatches() Error: Transform estimation failed." << std::endl;
+        return 0;
+    }
+
+    // 计算置信度：内点数 / 良好匹配点总数
+    int inliers_count = cv::countNonZero(inliers_mask);
+    double confidence = static_cast<double>(inliers_count) / (double) good_matches.size();
+
+    // 解析变换矩阵参数
+    // M = [[s*cos(a), -s*sin(a), tx], [s*sin(a), s*cos(a), ty]]
+    // a = atan2(sin(a), cos(a))
+    double m00 = M.at<double>(0, 0);
+    double m01 = M.at<double>(0, 1);
+    double m10 = M.at<double>(1, 0);
+    if (scale) *scale = std::sqrt(m00 * m00 + m01 * m01);
+    if (angle) *angle = std::atan2(m10, m00) * 180.0 / CV_PI;
+
+    // 使用变换矩阵 M 进行坐标变换
+    std::vector<cv::Point2f> position_tmpl_center;
+    cv::transform(std::vector<cv::Point2f>{{(float) image_tmpl.cols / 2.0f, (float) image_tmpl.rows / 2.0f}},
+                  position_tmpl_center, M);
+
+    // 计算结果，中心坐标系像素
+    position.x = position_tmpl_center[0].x - image_dst.cols / 2.0;
+    position.y = image_dst.rows / 2.0 - position_tmpl_center[0].y;
+
+    return confidence;
+}
+
+void cornerDetectAndCompute(const cv::Mat &image, std::vector<cv::KeyPoint> &key_points, cv::Mat &descriptors,
+                            CornerDescriptorType descriptor_type, int maxCorners, double qualityLevel,
+                            double minDistance, cv::Size winSize, cv::TermCriteria criteria, int min_Corners,
+                            float keypoint_diameter) {
+    // 检测角点
+    std::vector<cv::Point2f> corners;
+    cv::goodFeaturesToTrack(image, corners, maxCorners, qualityLevel, minDistance);
+    if (corners.size() < min_Corners) {
+        std::cout << "cornerDetectAndCompute() Error: Insufficient number of corner points in image!" << std::endl;
+        return;
+    }
+
+    // 角点亚像素精度优化
+    cv::cornerSubPix(image, corners, winSize, cv::Size(-1, -1), criteria);
+
+    // 计算特征点
+    std::vector<cv::KeyPoint> _key_points;
+    for (const auto &corner : corners) {
+        _key_points.emplace_back(corner, keypoint_diameter);
+    }
+
+    // 计算描述子
+    cv::Mat _descriptors;
+    if (descriptor_type == CornerDescriptorType::ORB) {
+        cv::Ptr<cv::ORB> orb = cv::ORB::create();
+        orb->compute(image, _key_points, _descriptors);
+    } else if (descriptor_type == CornerDescriptorType::SIFT) {
+        cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
+        sift->compute(image, _key_points, _descriptors);
+    }
+
+    // 返回结果
+    key_points = _key_points;
+    descriptors = _descriptors;
+}
+
+bool
+calcGoodMatchesByBFMatcher(std::vector<cv::KeyPoint> &key_points_tmpl, std::vector<cv::KeyPoint> &key_points_dst,
+                           cv::Mat &descriptors_tmpl, cv::Mat &descriptors_dst,
+                           std::vector<cv::DMatch> &good_matches) {
+    if (key_points_tmpl.empty() || key_points_dst.empty() || descriptors_tmpl.empty() || descriptors_dst.empty()) {
+        std::cout << "calcGoodMatchesByBFMatcher() Error: Not enough key points detected in one of the images."
+                  << std::endl;
+        return false;
+    }
+
+    // 使用 Brute-Force Matcher 进行特征匹配，计算汉明距离
+    cv::Ptr<cv::DescriptorMatcher> matcher = cv::BFMatcher::create(cv::NORM_HAMMING, true);
+    std::vector<cv::DMatch> matches;
+    matcher->match(descriptors_tmpl, descriptors_dst, matches);
+
+    if (matches.empty()) {
+        std::cout << "calcGoodMatchesByBFMatcher() Error: No matches found." << std::endl;
+        return false;
+    }
+
+    // 根据 匹配距离 [min_dis, 2 * min_dis] 筛选 优质匹配点
+    good_matches.clear();
+    std::sort(matches.begin(), matches.end(),
+              [](const cv::DMatch &a, const cv::DMatch &b) { return a.distance < b.distance; });
+    for (auto &match : matches) {
+        if (match.distance >= (2 * matches[0].distance + 1e-3)) break;
+        good_matches.push_back(match);
+    }
+
+    return true;
+}
+
+bool
+calcGoodMatchesByFLANNMatcher(std::vector<cv::KeyPoint> &key_points_tmpl, std::vector<cv::KeyPoint> &key_points_dst,
+                              cv::Mat &descriptors_tmpl, cv::Mat &descriptors_dst,
+                              std::vector<cv::DMatch> &good_matches) {
+    if (key_points_tmpl.empty() || key_points_dst.empty() || descriptors_tmpl.empty() || descriptors_dst.empty()) {
+        std::cout << "calcGoodMatchesByFLANNMatcher() Error: Not enough key points detected in one of the images."
+                  << std::endl;
+        return false;
+    }
+
+    // 使用 FLANN Matcher 进行特征匹配
+    cv::Ptr<cv::DescriptorMatcher> matcher = cv::FlannBasedMatcher::create();
+    std::vector<std::vector<cv::DMatch>> knn_matches;
+    matcher->knnMatch(descriptors_tmpl, descriptors_dst, knn_matches, 2);
+
+    if (knn_matches.empty()) {
+        std::cout << "calcGoodMatchesByFLANNMatcher() Error: No matches found." << std::endl;
+        return false;
+    }
+
+    // 使用 Lowe's ratio test 匹配策略
+    good_matches.clear();
+    const float ratio_thresh = 0.7f;
+    for (auto &match : knn_matches) {
+        if (match.size() >= 2 &&
+            match[0].distance < ratio_thresh * match[1].distance) {
+            good_matches.push_back(match[0]);
+        }
+    }
+
+    return true;
+}
+
+double
+calcTemplatePositionORB(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Point2d &position, double *scale,
+                        double *angle, int pre_features_num) {
+    if (image_tmpl.empty() || image_dst.empty()) {
+        throw std::invalid_argument("calcTemplatePositionORB() Error: Input image is empty!");
+    }
+
+    if (image_tmpl.cols > image_dst.cols || image_tmpl.rows > image_dst.rows) {
+        throw std::invalid_argument(
+                "calcTemplatePositionORB() Error: Template dimensions must be smaller than or equal to the destination image.");
+    }
+
+    // 初始化 ORB 检测器
+    cv::Ptr<cv::ORB> orb = cv::ORB::create(pre_features_num);
+
+    // 检测并计算 模板图像 和 目标图像 的特征点与描述子
+    std::vector<cv::KeyPoint> key_points_tmpl, key_points_dst;
+    cv::Mat descriptors_tmpl, descriptors_dst;
+    orb->detectAndCompute(image_tmpl, cv::noArray(), key_points_tmpl, descriptors_tmpl);
+    orb->detectAndCompute(image_dst, cv::noArray(), key_points_dst, descriptors_dst);
+
+    std::vector<cv::DMatch> good_matches;
+    if (!calcGoodMatchesByBFMatcher(key_points_tmpl, key_points_dst, descriptors_tmpl, descriptors_dst,
+                                    good_matches))
+        return 0;
+
+    return calcTemplatePositionByMatches(image_tmpl, image_dst, position, scale, angle, key_points_tmpl,
+                                         key_points_dst, good_matches);
+}
+
+double
+calcTemplatePositionCorner(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Point2d &position, double *scale,
+                           double *angle, CornerDescriptorType descriptor_type) {
+    if (image_tmpl.empty() || image_dst.empty()) {
+        throw std::invalid_argument("calcTemplatePositionCorner() Error: Input image is empty!");
+    }
+
+    if (image_tmpl.cols > image_dst.cols || image_tmpl.rows > image_dst.rows) {
+        throw std::invalid_argument(
+                "calcTemplatePositionCorner() Error: Template dimensions must be smaller than or equal to the destination image.");
+    }
+
+    // 检测模板图像和目标图像的角点并计算特征点与描述子
+    std::vector<cv::KeyPoint> key_points_tmpl, key_points_dst;
+    cv::Mat descriptors_tmpl, descriptors_dst;
+    cornerDetectAndCompute(image_tmpl, key_points_tmpl, descriptors_tmpl, descriptor_type);
+    cornerDetectAndCompute(image_dst, key_points_dst, descriptors_dst, descriptor_type);
+
+    std::vector<cv::DMatch> good_matches;
+    if (descriptor_type == CornerDescriptorType::ORB) {
+        if (!calcGoodMatchesByBFMatcher(key_points_tmpl, key_points_dst, descriptors_tmpl, descriptors_dst,
+                                        good_matches))
+            return 0;
+    } else if (descriptor_type == CornerDescriptorType::SIFT) {
+        if (!calcGoodMatchesByFLANNMatcher(key_points_tmpl, key_points_dst, descriptors_tmpl, descriptors_dst,
+                                           good_matches))
+            return 0;
+    }
+
+    return calcTemplatePositionByMatches(image_tmpl, image_dst, position, scale, angle, key_points_tmpl,
+                                         key_points_dst, good_matches);
 }
 
 // 计算图像的清晰度值（梯度方法）

@@ -11,26 +11,21 @@ int main() {
 //    imshow("img", image);
 //    waitKey(0);
 
-    HANDLE file_handle;  // 文件句柄
-    WIN32_FIND_DATA file_info;  // 文件信息
+    Mat image = imread(R"(../image/fa6628de.png)");
+    Mat image_tmpl = imread(R"(../image/fa6628de-sub.png)");
 
-    std::string folder_path = R"(\)";
-    if ((file_handle = FindFirstFile((folder_path + "*").c_str(), &file_info)) !=
-        INVALID_HANDLE_VALUE) {
-        do {
-            if ((file_info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
-                std::string image_path = folder_path + file_info.cFileName;
-                std::cout << "image path: " << image_path << std::endl;
+    bgrToGray(image, image);
+    bgrToGray(image_tmpl, image_tmpl);
 
-                Mat image = imread(image_path, 0);
-                cv::resize(image, image, Size(image.cols / 4, image.rows / 4));
+    cv::Point2d position;
+    double scale, angle;
 
-                double S = calcSharpnessOldOpt(&image, 4);
-                std::cout << "value: " << S << std::endl;
-            }
-        } while (FindNextFile(file_handle, &file_info) != 0);  // 处理下一个，存在则返回值不为 0
-        FindClose(file_handle);
-    }
+//    calcTemplatePosition(image_tmpl, image, position, true);
+//    calcTemplatePositionORB(image_tmpl, image, position, &scale, &angle);
+    calcTemplatePositionCorner(image_tmpl, image, position, &scale, &angle, CornerDescriptorType::ORB);
+//    calcTemplatePositionCorner(image_tmpl, image, position, &scale, &angle, CornerDescriptorType::SIFT);
+
+    std::cout << position << std::endl;
 
     return 0;
 }
