@@ -3,10 +3,6 @@
 
 #include "common.h"
 #include "gray_transform.h"
-#include <opencv2/xfeatures2d.hpp>
-
-
-using namespace cv::xfeatures2d;
 
 
 /**
@@ -71,6 +67,25 @@ void lineSegmentDetectHough(Mat &src, Mat &dst, double rho, double theta, int th
                             double maxLineGap = 0);
 
 /**
+ * @brief 基于霍夫变换的圆检测
+ *
+ * 调用 cv::HoughCircles()
+ *
+ * @param src 输入图像；type: CV_8UC1，灰度图
+ * @param dst 输出图像
+ * @param method 检测方法；见 cv::HoughModes，可选 #HOUGH_GRADIENT 或 #HOUGH_GRADIENT_ALT
+ * @param dp 累加器图像分辨率与输入图像分辨率的反比；例如 dp=1 表示累加器与输入图像同分辨率，dp=2 表示宽高均为输入图像的一半
+ * @param minDist 圆心之间的最小距离；过小则可能检测出相邻的多个圆，过大则可能漏检
+ * @param param1 方法特定参数；在 #HOUGH_GRADIENT / #HOUGH_GRADIENT_ALT 中，它是传递给 Canny 边缘检测的高阈值（低阈值等于 param1 的一半）
+ * @param param2 方法特定参数；在 #HOUGH_GRADIENT 中，它是累加器阈值，值越小则检测到的伪圆越多，值越大则只返回高置信度圆
+ * @param minRadius 最小圆半径
+ * @param maxRadius 最大圆半径；若 <= 0 则使用图像最大尺寸，若 < 0 则在 #HOUGH_GRADIENT 模式下仅返回圆心而不估计半径
+ * @return None
+ */
+void circleDetectHough(Mat &src, Mat &dst, int method = HOUGH_GRADIENT, double dp = 1, double minDist = 20,
+                       double param1 = 100, double param2 = 100, int minRadius = 0, int maxRadius = 0);
+
+/**
  * @brief 基于 Harris 算法的角点检测
  *
  * 调用 cv::cornerHarris()
@@ -125,23 +140,6 @@ void cornerDetectShiTomasi(Mat &src, Mat &dst, int maxCorners, double qualityLev
 void cornerDetectSubPixel(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, Size winSize,
                           Size zeroZone, TermCriteria criteria, InputArray mask = noArray(), int blockSize = 3,
                           bool useHarrisDetector = false, double k = 0.04);
-
-/**
- * @brief 基于 SURF 算法的关键点特征检测
- *
- * 调用 cv::xfeatures2d::SURF
- *
- * @param src 输入图像；type: CV_8U 或 CV_32F
- * @param dst 输出图像
- * @param hessianThreshold 检测阈值
- * @param nOctaves 图像金字塔的层数
- * @param nOctaveLayers 图像金字塔的每一层的子层数
- * @param extended 扩展描述符标志；true - 生成的描述符具有 128 个元素，false - 生成的描述符具有 64 个元素
- * @param upright 直立或旋转特征标志；true - 不计算特征点的方向信息，false - 计算特征点的方向（即特征点能够适应图像的旋转变换）
- * @return None
- */
-void keyPointDetectSurf(Mat &src, Mat &dst, double hessianThreshold = 100, int nOctaves = 4, int nOctaveLayers = 3,
-                        bool extended = false, bool upright = false);
 
 
 #endif //DIP_OPENCV_IMAGE_SEGMENTATION_H

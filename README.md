@@ -307,12 +307,12 @@ void lineDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold
 
 void lineSegmentDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold, double minLineLength = 0, double maxLineGap = 0);  // 基于霍夫变换的线段检测
 
+void circleDetectHough(Mat &src, Mat &dst, int method = HOUGH_GRADIENT, double dp = 1, double minDist = 20, double param1 = 100, double param2 = 100, int minRadius = 0, int maxRadius = 0);  // 基于霍夫变换的圆检测
+
 void cornerDetectHarris(Mat &src, Mat &dst, int threshold, int blockSize, int ksize, double k = 0.04, int borderType = BORDER_DEFAULT);  // 基于 Harris 算法的角点检测
 
 void cornerDetectShiTomasi(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, InputArray mask = noArray(), int blockSize = 3);  // 基于 Shi-Tomasi 算法的角点检测
 
 void cornerDetectSubPixel(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, Size winSize, Size zeroZone, TermCriteria criteria, InputArray mask = noArray(), int blockSize = 3, bool useHarrisDetector = false, double k = 0.04);  // 亚像素级角点检测
-
-void keyPointDetectSurf(Mat &src, Mat &dst, double hessianThreshold = 100, int nOctaves = 4, int nOctaveLayers = 3, bool extended = false, bool upright = false);  // 基于 SURF 算法的关键点特征检测
 ```
 

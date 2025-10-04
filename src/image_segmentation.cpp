@@ -50,11 +50,8 @@ void lineDetectHough(Mat &src, Mat &dst, double rho, double theta, int threshold
         double a = cos(line_theta), b = sin(line_theta);
         double x0 = a * line_rho, y0 = b * line_rho;
 
-        Point pt1, pt2;
-        pt1.x = cvRound(x0 + 1000 * (-b));
-        pt1.y = cvRound(y0 + 1000 * (a));
-        pt2.x = cvRound(x0 - 1000 * (-b));
-        pt2.y = cvRound(y0 - 1000 * (a));
+        Point pt1(cvRound(x0 + 1000 * (-b)), cvRound(y0 + 1000 * (a)));
+        Point pt2(cvRound(x0 - 1000 * (-b)), cvRound(y0 - 1000 * (a)));
         line(temp, pt1, pt2, Scalar(255, 0, 0), 3);
     }
 
@@ -73,6 +70,29 @@ void lineSegmentDetectHough(Mat &src, Mat &dst, double rho, double theta, int th
     Mat temp = src.clone();
     for (auto l: lines) {
         line(temp, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3);
+    }
+
+    temp.copyTo(dst);
+}
+
+void circleDetectHough(Mat &src, Mat &dst, int method, double dp, double minDist, double param1, double param2,
+                       int minRadius, int maxRadius) {
+    if (src.empty()) {
+        throw invalid_argument("circleDetectHough(): Input image is empty!");
+    }
+
+    vector<Vec3f> circles;
+    HoughCircles(src, circles, method, dp, minDist, param1, param2, minRadius, maxRadius);
+
+    Mat temp = src.clone();
+    for (const auto &c: circles) {
+        Point center(cvRound(c[0]), cvRound(c[1]));
+        int radius = cvRound(c[2]);
+
+        // 绘制圆心
+        circle(temp, center, 3, Scalar(0, 255, 0), FILLED);
+        // 绘制圆轮廓
+        circle(temp, center, radius, Scalar(255, 0, 0), 3);
     }
 
     temp.copyTo(dst);
@@ -190,32 +210,6 @@ void cornerDetectSubPixel(Mat &src, Mat &dst, int maxCorners, double qualityLeve
             circle(temp, corner, 2, Scalar(0, 255, 0), 2, 8, 0);
         }
     }
-
-    temp.copyTo(dst);
-}
-
-void keyPointDetectSurf(Mat &src, Mat &dst, double hessianThreshold, int nOctaves, int nOctaveLayers, bool extended,
-                        bool upright) {
-    if (src.empty()) {
-        throw invalid_argument("keyPointDetectSurf(): Input image is empty!");
-    }
-
-    Mat temp;
-    if (src.channels() == 1) {
-        src.copyTo(temp);
-    } else if (src.channels() == 3) {
-        bgrToGray(src, temp);
-    } else {
-        return;
-    }
-
-    // SURF 特征检测
-    Ptr<SURF> detector = SURF::create(hessianThreshold, nOctaves, nOctaveLayers, extended, upright);
-    vector<KeyPoint> key_points;
-    detector->detect(temp, key_points, Mat());
-
-    // 绘制关键点
-    drawKeypoints(temp, key_points, temp, Scalar::all(-1));  // Scalar::all(-1) 表示每次随机选取颜色
 
     temp.copyTo(dst);
 }
