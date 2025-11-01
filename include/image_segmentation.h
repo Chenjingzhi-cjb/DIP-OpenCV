@@ -141,5 +141,73 @@ void cornerDetectSubPixel(Mat &src, Mat &dst, int maxCorners, double qualityLeve
                           Size zeroZone, TermCriteria criteria, InputArray mask = noArray(), int blockSize = 3,
                           bool useHarrisDetector = false, double k = 0.04);
 
+/**
+ * @brief 基于 类间均值 的 全局（灰度分割）阈值 处理
+ *
+ * 算法核心理论：被阈值 t 分割的 “前景像素的灰度平均值 mean_fg” 和 “背景像素的灰度平均值 mean_bg” 的平均值与 t 近似
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param mask 掩模
+ * @return Best Threshold
+ */
+int calcGlobalThresholdClassMean(Mat &src, const Mat &mask = Mat());
+
+/**
+ * @brief 基于 大津法-最大类间方差法 的 全局（灰度分割）阈值 处理
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param mask 掩模
+ * @param eta 可分离性测度
+ * @return Best Threshold
+ */
+int calcGlobalThresholdOtus(Mat &src, const Mat &mask = Mat(), double *eta = nullptr);
+
+// 基于 Otsu 方法的最优全局阈值处理
+// OpenCV double otsu_thresh = cv::threshold(src, dst, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+
+/**
+ * @brief 获取灰度图像的百分位灰度值
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param percentile 百分位
+ * @return Percentile Gray Value
+ */
+int getPercentileGrayValue(Mat &src, double percentile = 0.997);
+
+// 使用图像平滑改进全局阈值处理：盒式平滑或高斯平滑
+
+/**
+ * @brief 基于边缘改进全局阈值处理
+ *
+ * 关键在于关注位于或靠近目标和背景间的边缘的像素
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param gradient_mode 梯度处理选择；1 - Sobel, 2 - Laplacian
+ * @param percentile 梯度图像二值处理的百分位阈值
+ * @param threshold_mode 阈值处理选择；1 - 类间均值, 2 - 大津法-最大类间方差法
+ * @return Best Threshold
+ */
+int calcGlobalThresholdEdgeOpt(Mat &src, int gradient_mode = 1, double percentile = 0.997, int threshold_mode = 1);
+
+/**
+ * @brief 基于 大津法-最大类间方差法 的 全局（灰度分割）双阈值 处理
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param mask 掩模
+ * @param eta 可分离性测度
+ * @return Best Threshold, {t1, t2}
+ */
+pair<int, int> calcGlobalDualThresholdOtus(Mat &src, const Mat &mask = Mat(), double *eta = nullptr);
+
+/**
+ * @brief 使用双阈值分割图像为三类
+ *
+ * @param src 输入图像；type: CV_8U
+ * @param dst 输出图像
+ * @param t1 阈值 1
+ * @param t2 阈值 2
+ */
+void thresholdThreeClass(Mat &src, Mat &dst, int t1, int t2);
+
 
 #endif //DIP_OPENCV_IMAGE_SEGMENTATION_H

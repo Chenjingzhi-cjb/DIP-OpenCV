@@ -180,3 +180,31 @@ void morphFlattenBackgroundExample() {
     imshow("dst", dst6);
     waitKey(0);
 }
+
+void globalThresholdEdgeOptExample() {
+    // ------------ septagon-small.tif ------------
+    Mat image1 = imread(R"(../image/septagon-small.tif)", 0);
+
+    threshold(image1, image1, calcGlobalThresholdEdgeOpt(image1, 1, 0.997, 1), 255, THRESH_BINARY);
+
+    namedWindow("image1", WINDOW_AUTOSIZE);
+    imshow("image1", image1);
+    waitKey(0);
+
+    // ------------ yeast-cells.tif ------------
+    Mat image21 = imread(R"(../image/yeast-cells.tif)", 0);
+
+    threshold(image21, image21, calcGlobalThresholdEdgeOpt(image21, 2, 0.995, 2), 255, THRESH_BINARY);
+
+    namedWindow("image21", WINDOW_AUTOSIZE);
+    imshow("image21", image21);
+    waitKey(0);
+
+    Mat image22 = imread(R"(../image/yeast-cells.tif)", 0);
+
+    threshold(image22, image22, calcGlobalThresholdEdgeOpt(image22, 2, 0.519, 2), 255, THRESH_BINARY);
+
+    namedWindow("image22", WINDOW_AUTOSIZE);
+    imshow("image22", image22);
+    waitKey(0);
+}

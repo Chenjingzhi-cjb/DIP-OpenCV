@@ -113,11 +113,13 @@ void grayBitPlaneLayering(Mat &src, vector<Mat> &dst);
  * @brief 灰度直方图，即单通道直方图
  *
  * @param src 输入图像；注意 type 应为 CV_8UC1
+ * @param mask 掩模
  * @param size 直方图的尺寸
  * @param color 直方图的颜色
  * @return gray histogram (single-channel histogram)
  */
-Mat grayHistogram(Mat &src, Size size = Size(512, 400), const Scalar &color = Scalar(255, 255, 255));
+Mat grayHistogram(Mat &src, const Mat &mask = Mat(), Size size = Size(512, 400),
+                  const Scalar &color = Scalar(255, 255, 255));
 
 // 全局直方图均衡化
 // OpenCV void equalizeHist( InputArray src, OutputArray dst );

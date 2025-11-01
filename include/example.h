@@ -6,6 +6,7 @@
 #include "color_process.h"
 #include "morphological.h"
 #include "wavelet_transform.h"
+#include "image_segmentation.h"
 
 
 // 3. 灰度变换与空间滤波 灰度变换 gray_transform.h
@@ -91,6 +92,13 @@ void borderClearExample();
  * @return None
  */
 void morphFlattenBackgroundExample();  // TODO: 使用 msvc 编译器编译后，运行时出现未知原因导致的延迟
+
+/**
+ * @brief 基于边缘改进全局阈值处理示例
+ *
+ * @return None
+ */
+void globalThresholdEdgeOptExample();
 
 
 #endif //DIP_OPENCV_EXAMPLE_H

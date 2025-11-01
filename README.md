@@ -29,7 +29,7 @@ void grayLayering(Mat &src, Mat &dst, uint r1, uint r2, uint s, bool other_zero)
 
 void grayBitPlaneLayering(Mat &src, vector<Mat> &dst);  // 灰度比特平面分层
 
-Mat grayHistogram(Mat &src, Size size = Size(512, 400), const Scalar &color = Scalar(255, 255, 255));  // 灰度直方图，即单通道直方图
+Mat grayHistogram(Mat &src, const Mat &mask = Mat(), Size size = Size(512, 400), const Scalar &color = Scalar(255, 255, 255));  // 灰度直方图，即单通道直方图
 
 // OpenCV void equalizeHist( InputArray src, OutputArray dst );  全局直方图均衡化
 
@@ -314,5 +314,25 @@ void cornerDetectHarris(Mat &src, Mat &dst, int threshold, int blockSize, int ks
 void cornerDetectShiTomasi(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, InputArray mask = noArray(), int blockSize = 3);  // 基于 Shi-Tomasi 算法的角点检测
 
 void cornerDetectSubPixel(Mat &src, Mat &dst, int maxCorners, double qualityLevel, double minDistance, Size winSize, Size zeroZone, TermCriteria criteria, InputArray mask = noArray(), int blockSize = 3, bool useHarrisDetector = false, double k = 0.04);  // 亚像素级角点检测
+
+int calcGlobalThresholdClassMean(Mat &src, const Mat &mask = Mat());  // 基于类间均值的全局（灰度分割）阈值处理
+
+int calcGlobalThresholdOtus(Mat &src, const Mat &mask = Mat(), double *eta = nullptr);  // 基于大津法的全局（灰度分割）阈值处理
+
+// OpenCV double otsu_thresh = cv::threshold(src, dst, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);  基于 Otsu 方法的最优全局阈值处理
+
+int getPercentileGrayValue(Mat &src, double percentile = 0.997);  // 获取灰度图像的百分位灰度值
+
+int calcGlobalThresholdEdgeOpt(Mat &src, int gradient_mode = 1, double percentile = 0.997, int threshold_mode = 1);  // 基于边缘改进全局阈值处理
+
+pair<int, int> calcGlobalDualThresholdOtus(Mat &src, const Mat &mask = Mat(), double *eta = nullptr);  // 基于大津法的全局（灰度分割）双阈值处理
+
+void thresholdThreeClass(Mat &src, Mat &dst, int t1, int t2);  // 使用双阈值分割图像为三类
+```
+
+- **example.h**
+
+```cpp
+void globalThresholdEdgeOptExample();  // 基于边缘改进全局阈值处理示例
 ```
 

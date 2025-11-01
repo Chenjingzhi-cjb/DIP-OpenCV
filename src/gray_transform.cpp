@@ -224,7 +224,7 @@ void grayBitPlaneLayering(Mat &src, vector<Mat> &dst) {
     }
 }
 
-Mat grayHistogram(Mat &src, Size size, const Scalar &color) {
+Mat grayHistogram(Mat &src, const Mat &mask, Size size, const Scalar &color) {
     if (src.empty()) {
         throw invalid_argument("grayHistogram(): Input image is empty!");
     }
@@ -234,7 +234,7 @@ Mat grayHistogram(Mat &src, Size size, const Scalar &color) {
     int hist_size = 256;
     float range[] = {0, 256};
     const float *hist_range = {range};
-    calcHist(&src, 1, nullptr, Mat(), hist_image_cal, 1, &hist_size, &hist_range);
+    calcHist(&src, 1, nullptr, mask, hist_image_cal, 1, &hist_size, &hist_range);
 
     // 归一化到 [0, 1]
     normalize(hist_image_cal, hist_image_cal, 0, 1, NORM_MINMAX);
