@@ -15,7 +15,7 @@
  * @param kernel 卷积核
  * @return None
  */
-void linearSpatialFilter(Mat &src, Mat &dst, Mat &kernel);
+void linearSpatialFilter(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);
 
 /**
  * @brief 盒式平滑（低通）空间滤波
@@ -30,15 +30,15 @@ void linearSpatialFilter(Mat &src, Mat &dst, Mat &kernel);
  * @param borderType 边界填充模式；默认为镜像填充，请参阅 #BorderTypes，不支持 #BORDER_WRAP
  * @return None
  */
-void smoothSpatialFilterBox(Mat &src, Mat &dst, Size ksize, Point anchor = Point(-1, -1), bool normalize = true,
-                            int borderType = BORDER_DEFAULT);
+void smoothSpatialFilterBox(const cv::Mat &src, cv::Mat &dst, cv::Size ksize, cv::Point anchor = cv::Point(-1, -1),
+                            bool normalize = true, int borderType = cv::BORDER_DEFAULT);
 
 /**
  * @brief 高斯平滑（低通）空间滤波
  *
  * 调用 cv::GaussianBlur()
  *
- * @param src 输入图像；注意 depth 应为 CV_8U, CV_16U, CV_16S, CV_32F or CV_64F
+ * @param src 输入图像；depth: CV_8U, CV_16U, CV_16S, CV_32F or CV_64F
  * @param dst 输出图像
  * @param ksize 高斯核的尺寸；ksize.width 和 ksize.height 可以不同，但均必须为正奇数，或者为零（再根据 sigma 进行计算）；
  *        注意卷积核的尺寸大于 (6 * sigma) 时无意义
@@ -49,8 +49,8 @@ void smoothSpatialFilterBox(Mat &src, Mat &dst, Size ksize, Point anchor = Point
  * @param borderType 边界填充模式；默认为镜像填充，请参阅 #BorderTypes，不支持 #BORDER_WRAP
  * @return None
  */
-void smoothSpatialFilterGauss(Mat &src, Mat &dst, Size ksize, double sigmaX, double sigmaY = 0,
-                              int borderType = BORDER_DEFAULT);
+void smoothSpatialFilterGauss(const cv::Mat &src, cv::Mat &dst, cv::Size ksize, double sigmaX, double sigmaY = 0,
+                              int borderType = cv::BORDER_DEFAULT);
 
 /**
  * @brief 统计排序（非线性）滤波器
@@ -63,7 +63,7 @@ void smoothSpatialFilterGauss(Mat &src, Mat &dst, Size ksize, double sigmaX, dou
  * @param percentage 排序（从小到大）位置的百分比值；取值范围为 [0, 100]；默认为 50，即中值滤波，适用于去除椒盐噪声（冲激）
  * @return None
  */
-void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage = 50);
+void orderStatisticsFilter(const cv::Mat &src, cv::Mat &dst, int ksize, int percentage = 50);
 
 /**
  * @brief 拉普拉斯（二阶导数）锐化（高通）空间滤波
@@ -78,8 +78,8 @@ void orderStatisticsFilter(Mat &src, Mat &dst, int ksize, int percentage = 50);
  * @param borderType 边界填充模式；默认为镜像填充，请参阅 #BorderTypes，不支持 #BORDER_WRAP
  * @return None
  */
-void sharpenSpatialFilterLaplace(Mat &src, Mat &dst, int ksize = 1, double scale = 1, double delta = 0,
-                                 int borderType = BORDER_DEFAULT);
+void sharpenSpatialFilterLaplace(const cv::Mat &src, cv::Mat &dst, int ksize = 1, double scale = 1, double delta = 0,
+                                 int borderType = cv::BORDER_DEFAULT);
 
 /**
  * @brief 模板锐化。当 k = 1 时，其为钝化掩蔽；当 k > 1 时，其为高提升滤波；当 k < 1 时，可以减少钝化模板的贡献。
@@ -90,7 +90,7 @@ void sharpenSpatialFilterLaplace(Mat &src, Mat &dst, int ksize = 1, double scale
  * @param k 钝化模板权值；k >= 0；默认为 1，即钝化掩蔽
  * @return None
  */
-void sharpenSpatialFilterTemplate(Mat &src, Mat &dst, Size smooth_ksize, float k = 1);
+void sharpenSpatialFilterTemplate(const cv::Mat &src, cv::Mat &dst, cv::Size smooth_ksize, float k = 1);
 
 // Roberts 算子
 void sharpenSpatialFilterRoberts();
@@ -113,8 +113,8 @@ void sharpenSpatialFilterPrewitt();
  * @param borderType 边界填充模式；默认为镜像填充，请参阅 #BorderTypes，不支持 #BORDER_WRAP
  * @return None
  */
-void sharpenSpatialFilterSobel(Mat &src, Mat &dst, int dx, int dy, int ksize = 3, double scale = 1, double delta = 0,
-                               int borderType = BORDER_DEFAULT);
+void sharpenSpatialFilterSobel(const cv::Mat &src, cv::Mat &dst, int dx, int dy, int ksize = 3, double scale = 1,
+                               double delta = 0, int borderType = cv::BORDER_DEFAULT);
 
 /**
  * @brief 沙尔（一阶导数）锐化（高通）空间滤波，可等价于 ksize 为 3 的 Sobel
@@ -130,8 +130,8 @@ void sharpenSpatialFilterSobel(Mat &src, Mat &dst, int dx, int dy, int ksize = 3
  * @param borderType 边界填充模式；默认为镜像填充，请参阅 #BorderTypes，不支持 #BORDER_WRAP
  * @return None
  */
-void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale = 1, double delta = 0,
-                                int borderType = BORDER_DEFAULT);
+void sharpenSpatialFilterScharr(const cv::Mat &src, cv::Mat &dst, int dx, int dy, double scale = 1, double delta = 0,
+                                int borderType = cv::BORDER_DEFAULT);
 
 /**
  * @brief Canny 锐化（高通）空间滤波（边缘检测优化算法）
@@ -144,7 +144,7 @@ void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale
  *  3. 对梯度幅度图像应用非极大值抑制；
  *  4. 使用双阈值处理和连通体分析来检测和连接边缘。
  *
- * @param src 输入图像；注意 depth 为 8-bit
+ * @param src 输入图像；depth: 8-bit
  * @param dst 输出图像；单通道 8-bit 图像
  * @param threshold1 双阈值迟滞处理的第一个阈值
  * @param threshold2 双阈值迟滞处理的第二个阈值，通常应满足 "(2 / 1) < (高阈值 / 低阈值) < (3 / 1)"
@@ -152,8 +152,8 @@ void sharpenSpatialFilterScharr(Mat &src, Mat &dst, int dx, int dy, double scale
  * @param L2gradient 标志；指定是否应用更精确的方式计算图像梯度幅值
  * @return None
  */
-void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double threshold2, int apertureSize = 3,
-                               bool L2gradient = false);
+void sharpenSpatialFilterCanny(const cv::Mat &src, cv::Mat &dst, double threshold1, double threshold2,
+                               int apertureSize = 3, bool L2gradient = false);
 
 /**
  * @brief 几何均值滤波器，效果优于算术平均滤波器（即盒式滤波器）
@@ -163,7 +163,7 @@ void sharpenSpatialFilterCanny(Mat &src, Mat &dst, double threshold1, double thr
  * @param ksize 滤波核尺寸；必须为正奇数
  * @return None
  */
-void geometricMeanFilter(Mat &src, Mat &dst, Size ksize);
+void geometricMeanFilter(const cv::Mat &src, cv::Mat &dst, cv::Size ksize);
 
 /**
  * @brief 谐波平均滤波器，能够处理 盐粒噪声 或 类高斯噪声，不能处理 胡椒噪声
@@ -173,7 +173,7 @@ void geometricMeanFilter(Mat &src, Mat &dst, Size ksize);
  * @param ksize 滤波核尺寸；必须为正奇数
  * @return None
  */
-void harmonicAvgFilter(Mat &src, Mat &dst, Size ksize);
+void harmonicAvgFilter(const cv::Mat &src, cv::Mat &dst, cv::Size ksize);
 
 /**
  * @brief 反谐波平均滤波器，能够处理 盐粒噪声 或 胡椒噪声 或 类高斯噪声
@@ -185,7 +185,7 @@ void harmonicAvgFilter(Mat &src, Mat &dst, Size ksize);
  *        当 Q = 0 时，简化为算术平均滤波器；当 Q = -1 时，简化为谐波平均滤波器
  * @return None
  */
-void antiHarmonicAvgFilter(Mat &src, Mat &dst, Size ksize, float order);
+void antiHarmonicAvgFilter(const cv::Mat &src, cv::Mat &dst, cv::Size ksize, float order);
 
 /**
  * @brief 中点滤波器，适合处理随机分布的噪声，如 高斯噪声 或 均匀噪声
@@ -195,7 +195,7 @@ void antiHarmonicAvgFilter(Mat &src, Mat &dst, Size ksize, float order);
  * @param ksize 滤波核尺寸；必须为正奇数
  * @return None
  */
-void midPointFilter(Mat &src, Mat &dst, Size ksize);
+void midPointFilter(const cv::Mat &src, cv::Mat &dst, cv::Size ksize);
 
 /**
  * @brief 修正阿尔法滤波器，适合处理多种混合噪声
@@ -206,7 +206,7 @@ void midPointFilter(Mat &src, Mat &dst, Size ksize);
  * @param d 舍弃像素数量；取值范围为 [0, mn - 1]
  * @return None
  */
-void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d);
+void modifiedAlphaMeanFilter(const cv::Mat &src, cv::Mat &dst, cv::Size ksize, int d);
 
 /**
  * @brief 自适应局部降噪滤波器
@@ -216,7 +216,7 @@ void modifiedAlphaMeanFilter(Mat &src, Mat &dst, Size ksize, int d);
  * @param ksize 滤波核尺寸；必须为正奇数
  * @return None
  */
-void adaptiveLocalFilter(Mat &src, Mat &dst, Size ksize);
+void adaptiveLocalFilter(const cv::Mat &src, cv::Mat &dst, cv::Size ksize);
 
 /**
  * @brief 自适应中值滤波器，能够去除椒盐噪声、平滑其他非冲激噪声且减少失真
@@ -226,7 +226,7 @@ void adaptiveLocalFilter(Mat &src, Mat &dst, Size ksize);
  * @param max_ksize 最大滤波核尺寸；必须为正奇数 and >= 3
  * @return None
  */
-void adaptiveMedianFilter(Mat &src, Mat &dst, int max_ksize);
+void adaptiveMedianFilter(const cv::Mat &src, cv::Mat &dst, int max_ksize);
 
 
 #endif //DIP_OPENCV_SPATIAL_FILTER_H

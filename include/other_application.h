@@ -46,9 +46,9 @@ enum class CornerDescriptorType {
  * @param criteria 角点亚像素优化迭代终止条件
  * @param min_Corners 最小角点数量
  * @param keypoint_diameter 特征点直径
- * @return None
+ * @return Status
  */
-void cornerDetectAndCompute(const cv::Mat &image, std::vector<cv::KeyPoint> &key_points, cv::Mat &descriptors,
+bool cornerDetectAndCompute(const cv::Mat &image, std::vector<cv::KeyPoint> &key_points, cv::Mat &descriptors,
                             CornerDescriptorType descriptor_type = CornerDescriptorType::ORB,
                             int maxCorners = 200, double qualityLevel = 0.01, double minDistance = 10,
                             cv::Size winSize = cv::Size(11, 11),
@@ -123,7 +123,7 @@ calcTemplatePositionCorner(const cv::Mat &image_tmpl, const cv::Mat &image_dst, 
  * @param image 输入图像
  * @return The sharpness score of image
  */
-double calcImageSharpness(Mat &image);
+double calcImageSharpness(cv::Mat &image);
 
 /**
  * @brief 计算图像清晰度值（优化版）

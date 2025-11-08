@@ -1,124 +1,130 @@
 #include "gray_transform.h"
 
 
-void bgrToGray(Mat &src, Mat &dst) {
+void bgrToGray(const cv::Mat &src, cv::Mat &dst) {
     if (src.empty()) {
-        throw invalid_argument("bgrToGray(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC3) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC3.");
     }
 
-    cvtColor(src, dst, COLOR_BGR2GRAY);
+    cv::cvtColor(src, dst, cv::COLOR_BGR2GRAY);
 }
 
-void grayLinearScaleCV_8U(Mat &src, Mat &dst) {
+void grayLinearScaleCV_8U(const cv::Mat &src, cv::Mat &dst) {
     if (src.empty()) {
-        throw invalid_argument("grayLinearScaleCV_8U(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
-    normalize(src, dst, 0, 255, NORM_MINMAX, CV_8U);
+    cv::normalize(src, dst, 0, 255, cv::NORM_MINMAX, CV_8U);
 }
 
-void grayInvert(Mat &src, Mat &dst) {
+void grayInvert(const cv::Mat &src, cv::Mat &dst) {
     if (src.empty()) {
-        throw invalid_argument("grayInvert(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
     src.convertTo(dst, CV_8U, -1, 255);
 }
 
-void grayLog(Mat &src, Mat &dst) {
+void grayLog(const cv::Mat &src, cv::Mat &dst) {
     if (src.empty()) {
-        throw invalid_argument("grayLog(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
-    Mat temp(src.size(), CV_32FC1);
-
+    cv::Mat temp(src.size(), CV_32FC1);
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
             // 进行 对数变换
-            temp.at<float>(r, c) = (float) log10(1 + m);
+            temp.at<float>(r, c) = (float) std::log10(1 + m);
         }
     }
 
     // 线性缩放至 [0, 255]
-    normalize(temp, temp, 0, 255, NORM_MINMAX, CV_8U);
+    cv::normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }
 
-void grayAntiLog(Mat &src, Mat &dst) {
+void grayAntiLog(const cv::Mat &src, cv::Mat &dst) {
     if (src.empty()) {
-        throw invalid_argument("grayAntiLog(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
-    Mat temp(src.size(), CV_32FC1);
-
+    cv::Mat temp(src.size(), CV_32FC1);
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
             // 进行 反对数变换
-            temp.at<float>(r, c) = (float) pow(10, (float) m / 255) - 1;
+            temp.at<float>(r, c) = (float) std::pow(10, (float) m / 255) - 1;
         }
     }
 
     // 线性缩放至 [0, 255]
-    normalize(temp, temp, 0, 255, NORM_MINMAX, CV_8U);
+    cv::normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }
 
-void grayGamma(Mat &src, Mat &dst, float gamma) {
+void grayGamma(const cv::Mat &src, cv::Mat &dst, float gamma) {
     if (src.empty()) {
-        throw invalid_argument("grayGamma(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
     }
-
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
+    }
     if (gamma <= 0) {
-        string err = R"(grayGamma(): Parameter Error! You should make sure "gamma > 0"!)";
-        throw invalid_argument(err);
+        THROW_ARG_ERROR("Invalid `gamma`: {}. You should make sure `gamma > 0`.", gamma);
     }
 
-    Mat temp(src.size(), CV_32FC1);
-
+    cv::Mat temp(src.size(), CV_32FC1);
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
             // 进行 伽马变换
-            temp.at<float>(r, c) = (float) pow(m, gamma);
+            temp.at<float>(r, c) = (float) std::pow(m, gamma);
         }
     }
 
     // 线性缩放至 [0, 255]
-    normalize(temp, temp, 0, 255, NORM_MINMAX, CV_8U);
+    cv::normalize(temp, temp, 0, 255, cv::NORM_MINMAX, CV_8U);
 
     temp.copyTo(dst);
 }
 
-void grayContrastStretch(Mat &src, Mat &dst, uint r1, uint s1, uint r2, uint s2) {
+void grayContrastStretch(const cv::Mat &src, cv::Mat &dst, uint r1, uint s1, uint r2, uint s2) {
     if (src.empty()) {
-        throw invalid_argument("grayContrastStretch(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
     // CV_8U -> [0, 255]
-    int upper_limit = 255;
+    const int upper_limit = 255;
 
     if (r1 >= r2 || s1 >= s2) {
-        string err = "grayContrastStretch(): Parameter Error! ";
-        err += R"(You should make sure "r1 < r2" and "s1 < s2"!)";
-        throw invalid_argument(err);
+        THROW_ARG_ERROR("Invalid `r1, r2, s1, s2`. You should make sure `r1 < r2` and `s1 < s2`.");
     }
-
     if (r1 <= 0 || s1 <= 0) {
-        string err = "grayContrastStretch(): Parameter Error! ";
-        err += R"(You should make sure "r1, s1 > 0"!)";
-        throw invalid_argument(err);
+        THROW_ARG_ERROR("Invalid `r1, s1`. You should make sure `r1, s1 > 0`.");
     }
-
     if (r2 >= upper_limit || s2 >= upper_limit) {
-        string err = "grayContrastStretch(): Parameter Error! ";
-        err += R"(You should make sure "r2, s2 < )";
-        err += to_string(upper_limit);
-        err += R"("!)";
-        throw invalid_argument(err);
+        THROW_ARG_ERROR("Invalid `r2, s2`. You should make sure `r2, s2 < {}`.", upper_limit);
     }
 
     double k1 = (double) s1 / r1;
@@ -127,7 +133,7 @@ void grayContrastStretch(Mat &src, Mat &dst, uint r1, uint s1, uint r2, uint s2)
     double k3 = (double) (upper_limit - s2) / (upper_limit - r2);
     double b3 = s2 - k3 * r2;
 
-    Mat temp = Mat::zeros(src.size(), src.depth());
+    cv::Mat temp(src.size(), CV_8UC1);
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
@@ -135,64 +141,52 @@ void grayContrastStretch(Mat &src, Mat &dst, uint r1, uint s1, uint r2, uint s2)
             double result;
             if (m < r1) {
                 result = k1 * m;
-            } else if (r1 <= m && m < r2) {
+            } else if (m < r2) {
                 result = k2 * m + b2;
             } else {  // m >= r2
                 result = k3 * m + b3;
             }
             if (result > upper_limit) result = upper_limit;
-            temp.at<uchar>(r, c) = uchar(result);
+            temp.at<uchar>(r, c) = (uchar) result;
         }
     }
 
     temp.copyTo(dst);
 }
 
-void grayLayering(Mat &src, Mat &dst, uint r1, uint r2, uint s, bool other_zero) {
+void grayLayering(const cv::Mat &src, cv::Mat &dst, uint r1, uint r2, uint s, bool other_zero) {
     if (src.empty()) {
-        throw invalid_argument("grayLayering(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
     // CV_8U -> [0, 255]
-    int upper_limit = 255;
+    const int upper_limit = 255;
 
     if (r1 > r2) {
-        throw invalid_argument(R"(grayLayering(): Parameter Error! You should make sure "r1 <= r2"!)");
+        THROW_ARG_ERROR("Invalid `r1, r2`. You should make sure `r1 <= r2`.");
     }
-
-    if (r1 < 0) {
-        throw invalid_argument(R"(grayLayering(): Parameter Error! You should make sure "r1 >= 0"!)");
-    }
-
     if (r2 > upper_limit) {
-        string err = "grayLayering(): Parameter Error! ";
-        err += R"(You should make sure "r2 <= )";
-        err += to_string(upper_limit);
-        err += R"("!)";
-        throw invalid_argument(err);
+        THROW_ARG_ERROR("Invalid `r2`. You should make sure `r2 <= {}`.", upper_limit);
+    }
+    if (s > upper_limit) {
+        THROW_ARG_ERROR("Invalid `s`. You should make sure `s <= {}`.", upper_limit);
     }
 
-    if (s < 0 || s > upper_limit) {
-        string err = "grayLayering(): Parameter Error! ";
-        err += R"(You should make sure "s >= 0" and "s <= )";
-        err += to_string(upper_limit);
-        err += R"("!)";
-        throw invalid_argument(err);
-    }
+    // 系数,其他值置为 原值 / 零值
+    int t = other_zero ? 0 : 1;
 
-    // 系数，其他值置为 原值 / 零值
-    int t = 1;
-    if (other_zero) t = 0;
-
-    Mat temp = Mat::zeros(src.size(), src.depth());
+    cv::Mat temp(src.size(), CV_8UC1);
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             int m = src.at<uchar>(r, c);
             // 进行 灰度值级分层
             if (r1 <= m && m <= r2) {
-                temp.at<uchar>(r, c) = s;
+                temp.at<uchar>(r, c) = (uchar) s;
             } else {  // m < r1 || m > r2
-                temp.at<uchar>(r, c) = uchar(t * m);
+                temp.at<uchar>(r, c) = (uchar) (t * m);
             }
         }
     }
@@ -200,17 +194,20 @@ void grayLayering(Mat &src, Mat &dst, uint r1, uint r2, uint s, bool other_zero)
     temp.copyTo(dst);
 }
 
-void grayBitPlaneLayering(Mat &src, vector<Mat> &dst) {
+void grayBitPlaneLayering(const cv::Mat &src, std::vector<cv::Mat> &dst) {
     if (src.empty()) {
-        throw invalid_argument("grayBitPlaneLayering(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
     // CV_8U
-    int bits = 8;
+    const int bits = 8;
 
     dst.clear();
     for (int i = 0; i < bits; i++) {
-        dst.emplace_back(Mat::zeros(src.size(), src.depth()));
+        dst.emplace_back(cv::Mat::zeros(src.size(), CV_8UC1));
     }
 
     for (int r = 0; r < src.rows; ++r) {
@@ -218,127 +215,146 @@ void grayBitPlaneLayering(Mat &src, vector<Mat> &dst) {
             uchar m = src.at<uchar>(r, c);
             // 进行 比特平面分层
             for (int i = 0; i < bits; i++) {
-                dst[i].at<uchar>(r, c) = uchar(m & (1 << i));
+                dst[i].at<uchar>(r, c) = (uchar) (m & (1 << i));
             }
         }
     }
 }
 
-Mat grayHistogram(Mat &src, const Mat &mask, Size size, const Scalar &color) {
+cv::Mat grayHistogram(const cv::Mat &src, const cv::Mat &mask, cv::Size size,
+                      const cv::Scalar &color) {
     if (src.empty()) {
-        throw invalid_argument("grayHistogram(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
     // 计算直方图 CV_8U -> 256
-    Mat hist_image_cal;
     int hist_size = 256;
     float range[] = {0, 256};
     const float *hist_range = {range};
-    calcHist(&src, 1, nullptr, mask, hist_image_cal, 1, &hist_size, &hist_range);
+
+    cv::Mat hist;
+    cv::calcHist(&src, 1, nullptr, mask, hist, 1, &hist_size, &hist_range);
 
     // 归一化到 [0, 1]
-    normalize(hist_image_cal, hist_image_cal, 0, 1, NORM_MINMAX);
+    cv::normalize(hist, hist, 0, 1, cv::NORM_MINMAX);
 
     // 绘制直方图
-    Mat hist_image_paint(size.height, size.width, CV_8UC3, Scalar(0, 0, 0));
+    cv::Mat hist_image_paint(size.height, size.width, CV_8UC3, cv::Scalar(0, 0, 0));
     int bin_width = cvRound((double) size.width / hist_size);
     for (int i = 1; i < hist_size; i++) {
-        line(hist_image_paint,
-             Point(bin_width * (i - 1), size.height - cvRound(hist_image_cal.at<float>(i - 1) * (float) size.height)),
-             Point(bin_width * i, size.height - cvRound(hist_image_cal.at<float>(i) * (float) size.height)),
-             color, 2);
+        cv::Point p1 = cv::Point(bin_width * (i - 1),
+                                 size.height - cvRound(hist.at<float>(i - 1) * (float) size.height));
+        cv::Point p2 = cv::Point(bin_width * i,
+                                 size.height - cvRound(hist.at<float>(i) * (float) size.height));
+        cv::line(hist_image_paint, p1, p2, color, 2);
     }
 
     return hist_image_paint;
 }
 
-void localEqualizeHist(Mat &src, Mat &dst, double clipLimit, Size tileGridSize) {
+void localEqualizeHist(const cv::Mat &src, cv::Mat &dst, double clipLimit,
+                       cv::Size tileGridSize) {
     if (src.empty()) {
-        throw invalid_argument("localEqualizeHist(): Input src image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
-    Ptr<CLAHE> clahe = createCLAHE(clipLimit, tileGridSize);
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(clipLimit, tileGridSize);
     clahe->apply(src, dst);
 }
 
-void matchHist(Mat &src, Mat &dst, Mat &refer) {
+void matchHist(const cv::Mat &src, cv::Mat &dst, const cv::Mat &refer) {
     if (src.empty()) {
-        throw invalid_argument("matchHist(): Input src image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
     }
-
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
+    }
     if (refer.empty()) {
-        throw invalid_argument("matchHist(): Input refer image is empty!");
+        THROW_ARG_ERROR("Input refer image is empty.");
+    }
+    if (refer.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input refer image type must be CV_8UC1.");
     }
 
     // 对 原始图像 和 参考图像 进行直方图均衡
-    Mat src_equ, refer_equ;
-    equalizeHist(src, src_equ);
-    equalizeHist(refer, refer_equ);
+    cv::Mat src_equ, refer_equ;
+    cv::equalizeHist(src, src_equ);
+    cv::equalizeHist(refer, refer_equ);
 
     // 计算均衡后的图像的直方图 CV_8U -> 256
-    Mat src_hist, refer_hist;
     const int hist_size = 256;
     float range[] = {0, hist_size};
     const float *hist_range = {range};
-    calcHist(&src_equ, 1, nullptr, Mat(), src_hist, 1, &hist_size, &hist_range);
-    calcHist(&refer_equ, 1, nullptr, Mat(), refer_hist, 1, &hist_size, &hist_range);
+
+    cv::Mat src_hist, refer_hist;
+    cv::calcHist(&src_equ, 1, nullptr, cv::Mat(), src_hist, 1, &hist_size, &hist_range);
+    cv::calcHist(&refer_equ, 1, nullptr, cv::Mat(), refer_hist, 1, &hist_size, &hist_range);
 
     // 计算均衡后的图像的累计概率
     auto src_image_size = (float) (src_equ.rows * src_equ.cols);
     auto refer_image_size = (float) (refer_equ.rows * refer_equ.cols);
+
     float src_cdf[hist_size] = {(src_hist.at<float>(0) / src_image_size)};
     float refer_cdf[hist_size] = {(refer_hist.at<float>(0) / refer_image_size)};
+
     for (int i = 1; i < hist_size; i++) {
         src_cdf[i] = src_hist.at<float>(i) / src_image_size + src_cdf[i - 1];
         refer_cdf[i] = refer_hist.at<float>(i) / refer_image_size + refer_cdf[i - 1];
     }
 
     // 进行直方图规定化
-    Mat matched = Mat::zeros(src.size(), CV_8UC1);
     // 1. 计算累计概率的差值
     float diff_cdf[hist_size][hist_size];
     for (int i = 0; i < hist_size; i++) {
         for (int j = 0; j < hist_size; j++) {
-            diff_cdf[i][j] = fabs(src_cdf[i] - refer_cdf[j]);
+            diff_cdf[i][j] = std::abs(src_cdf[i] - refer_cdf[j]);
         }
     }
+
     // 2. 构建灰度级映射表
-    Mat lut(1, hist_size, CV_8UC1);
-    for (int i = 1; i < hist_size; i++) {
+    cv::Mat lut(1, hist_size, CV_8UC1);
+    for (int i = 0; i < hist_size; i++) {
         // 查找累积概率差最小(灰度最接近)的规定化灰度
-        float min = diff_cdf[i][0];
+        float min_diff = diff_cdf[i][0];
         int index = 0;
-        for (int j = 0; j < hist_size; j++) {
-            if (diff_cdf[i][j] < min) {
-                min = diff_cdf[i][j];
+        for (int j = 1; j < hist_size; j++) {
+            if (diff_cdf[i][j] < min_diff) {
+                min_diff = diff_cdf[i][j];
                 index = j;
             }
         }
-        lut.at<uchar>(i) = index;
+        lut.at<uchar>(i) = static_cast<uchar>(index);
     }
-    // 3. 映射
-    LUT(src_equ, lut, matched);
 
-    matched.copyTo(dst);
+    // 3. 映射
+    cv::Mat temp;
+    cv::LUT(src_equ, lut, temp);
+
+    temp.copyTo(dst);
 }
 
-void shadingCorrection(Mat &src, Mat &dst, float k1, float k2) {
+void shadingCorrection(const cv::Mat &src, cv::Mat &dst, float k1, float k2) {
     if (src.empty()) {
-        throw invalid_argument("shadingCorrection(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
     }
-
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
+    }
     if (k1 <= 0 || k1 > 0.5) {
-        string err = R"(shadingCorrection(): Parameter Error! You should make sure "0 < k1 <= 0.5"!)";
-        throw invalid_argument(err);
+        THROW_ARG_ERROR("Invalid `k1`: {}. You should make sure `0 < k1 <= 0.5`.", k1);
     }
-
     if (k2 <= 0 || k2 > 6) {
-        string err = R"(shadingCorrection(): Parameter Error! You should make sure "0 < k2 <= 6"!)";
-        throw invalid_argument(err);
+        THROW_ARG_ERROR("Invalid `k2`: {}. You should make sure `0 < k2 <= 6`.", k2);
     }
 
     // 计算卷积核参数
-    Size src_size = src.size();
+    cv::Size src_size = src.size();
 
     int ksize_width = (int) ((float) src_size.width * k1);
     if (ksize_width % 2 == 0) ksize_width += 1;
@@ -350,11 +366,11 @@ void shadingCorrection(Mat &src, Mat &dst, float k1, float k2) {
     float sigma_y = (float) ksize_height / k2;
 
     // 1. 通过高斯滤波获取阴影
-    Mat shading(src_size, src.type());
-    GaussianBlur(src, shading, Size(ksize_width, ksize_height), sigma_x, sigma_y);
+    cv::Mat shading;
+    cv::GaussianBlur(src, shading, cv::Size(ksize_width, ksize_height), sigma_x, sigma_y);
 
     // 2. 阴影校正
-    Mat temp(src_size, CV_32FC1);
+    cv::Mat temp(src_size, CV_32FC1);
     for (int r = 0; r < src.rows; ++r) {
         for (int c = 0; c < src.cols; ++c) {
             temp.at<float>(r, c) = (float) src.at<uchar>(r, c) / (float) shading.at<uchar>(r, c);

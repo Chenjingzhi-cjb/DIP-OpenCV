@@ -2,209 +2,213 @@
 
 
 void localEqualizeHistExample() {
-    Mat image_gray = imread(R"(..\image\hidden-symbols.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\hidden-symbols.tif)", 0);
 
-    Mat dst;
+    cv::Mat dst;
     localEqualizeHist(image_gray, dst);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dst", WINDOW_AUTOSIZE);
-    imshow("dst", dst);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image_gray);
+    cv::namedWindow("dst", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dst", dst);
+    cv::waitKey(0);
 }
 
 void shadingCorrectionExample() {
-    Mat image_gray = imread(R"(..\image\checkerboard512-shaded.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\checkerboard512-shaded.tif)", 0);
 
-    Mat dst;
+    cv::Mat dst;
     shadingCorrection(image_gray, dst);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dst", WINDOW_AUTOSIZE);
-    imshow("dst", dst);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image_gray);
+    cv::namedWindow("dst", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dst", dst);
+    cv::waitKey(0);
 }
 
 void domainTransformExample() {
-    Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\barbara.tif)", 0);
 
-    Mat dst_complex, dst_magnitude;
+    cv::Mat dst_complex, dst_magnitude;
     spatialToFrequency(image_gray, dst_complex);
     splitFrequencyMagnitude(dst_complex, dst_magnitude);
 
-    Mat dst_idft = Mat::zeros(image_gray.size(), image_gray.depth());
-    frequencyToSpatial(dst_complex, dst_idft);
-    normalize(dst_idft, dst_idft, 0, 255, NORM_MINMAX, CV_8U);
+    cv::Mat dst_idft = cv::Mat::zeros(image_gray.size(), image_gray.depth());
+    frequencyToSpatial(dst_complex, dst_idft, image_gray.size());
+    cv::normalize(dst_idft, dst_idft, 0, 255, cv::NORM_MINMAX, CV_8U);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dft", WINDOW_AUTOSIZE);
-    imshow("dft", dst_magnitude);
-    namedWindow("idft", WINDOW_AUTOSIZE);
-    imshow("idft", dst_idft);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image_gray);
+    cv::namedWindow("dft", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dft", dst_magnitude);
+    cv::namedWindow("idft", cv::WINDOW_AUTOSIZE);
+    cv::imshow("idft", dst_idft);
+    cv::waitKey(0);
 }
 
 void highFreqEmphasisExample() {
-    Mat image_gray = imread(R"(..\image\chestXray.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\chestXray.tif)", 0);
 
-    Mat kernel = highFreqEmphasisKernel(image_gray.size(), 70);
+    cv::Mat kernel = highFreqEmphasisKernel(image_gray.size(), 70);
 
-    Mat dst;
+    cv::Mat dst;
     frequencyFilter(image_gray, dst, kernel);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dst", WINDOW_AUTOSIZE);
-    imshow("dst", dst);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image_gray);
+    cv::namedWindow("dst", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dst", dst);
+    cv::waitKey(0);
 }
 
 void hsiExample() {
-    Mat image = imread(R"(..\image\strawberries-RGB.tif)");
+    cv::Mat image = cv::imread(R"(..\image\strawberries-RGB.tif)");
 
-    Mat dst;
+    cv::Mat dst;
     bgrToHsi(image, dst);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image);
-    namedWindow("dst", WINDOW_AUTOSIZE);
-    imshow("dst", dst);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image);
+    cv::namedWindow("dst", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dst", dst);
+    cv::waitKey(0);
 }
 
 void DCTExample() {
-    Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\barbara.tif)", 0);
     image_gray.convertTo(image_gray, CV_32F, 1.0 / 255);
 
-    Mat dst_dct;
+    cv::Mat dst_dct;
     DCT(image_gray, dst_dct);
 
-    Mat dst_idct = Mat::zeros(image_gray.size(), image_gray.type());
-    IDCT(dst_dct, dst_idct);
-    normalize(dst_idct, dst_idct, 0, 1, NORM_MINMAX);
+    cv::Mat dst_idct = cv::Mat::zeros(image_gray.size(), image_gray.type());
+    IDCT(dst_dct, dst_idct, image_gray.size());
+    cv::normalize(dst_idct, dst_idct, 0, 1, cv::NORM_MINMAX);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dct", WINDOW_AUTOSIZE);
-    imshow("dct", dst_dct);
-    namedWindow("idct", WINDOW_AUTOSIZE);
-    imshow("idct", dst_idct);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image_gray);
+    cv::namedWindow("dct", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dct", dst_dct);
+    cv::namedWindow("idct", cv::WINDOW_AUTOSIZE);
+    cv::imshow("idct", dst_idct);
+    cv::waitKey(0);
 }
 
 void blockDCTExample() {
-    Mat image_gray = imread(R"(..\image\barbara.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\barbara.tif)", 0);
     image_gray.convertTo(image_gray, CV_32F, 1.0 / 255);
 
-    Mat dst_dct;
+    cv::Mat dst_dct;
     blockDCT(image_gray, dst_dct);
 
-    Mat dst_idct = Mat::zeros(image_gray.size(), image_gray.type());
-    blockIDCT(dst_dct, dst_idct);
-    normalize(dst_idct, dst_idct, 0, 1, NORM_MINMAX);
+    cv::Mat dst_idct = cv::Mat::zeros(image_gray.size(), image_gray.type());
+    blockIDCT(dst_dct, dst_idct, image_gray.size());
+    cv::normalize(dst_idct, dst_idct, 0, 1, cv::NORM_MINMAX);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_gray);
-    namedWindow("dct", WINDOW_AUTOSIZE);
-    imshow("dct", dst_dct);
-    namedWindow("idct", WINDOW_AUTOSIZE);
-    imshow("idct", dst_idct);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image_gray);
+    cv::namedWindow("dct", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dct", dst_dct);
+    cv::namedWindow("idct", cv::WINDOW_AUTOSIZE);
+    cv::imshow("idct", dst_idct);
+    cv::waitKey(0);
 }
 
 void holeFillExample() {
-    Mat image_gray = imread(R"(..\image\text-touching-border-half.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\text-touching-border-half.tif)", 0);
 
-    Mat image_bin;
+    cv::Mat image_bin;
     grayToBinary(image_gray, image_bin, 127, 255);
 
-    Mat dst;
+    cv::Mat dst;
     holeFill(image_bin, dst);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_bin);
-    namedWindow("dst", WINDOW_AUTOSIZE);
-    imshow("dst", dst);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image_bin);
+    cv::namedWindow("dst", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dst", dst);
+    cv::waitKey(0);
 }
 
 void borderClearExample() {
-    Mat image_gray = imread(R"(..\image\text-touching-border-half.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\text-touching-border-half.tif)", 0);
 
-    Mat image_bin;
+    cv::Mat image_bin;
     grayToBinary(image_gray, image_bin, 127, 255);
 
-    Mat dst;
+    cv::Mat dst;
     borderClear(image_bin, dst);
 
-    namedWindow("src", WINDOW_AUTOSIZE);
-    imshow("src", image_bin);
-    namedWindow("dst", WINDOW_AUTOSIZE);
-    imshow("dst", dst);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_AUTOSIZE);
+    cv::imshow("src", image_bin);
+    cv::namedWindow("dst", cv::WINDOW_AUTOSIZE);
+    cv::imshow("dst", dst);
+    cv::waitKey(0);
 }
 
 void morphFlattenBackgroundExample() {
-    Mat image_gray = imread(R"(..\image\calculator.tif)", 0);
+    cv::Mat image_gray = cv::imread(R"(..\image\calculator.tif)", 0);
 
     // 1. 对 原图 进行重建开运算，目的是选出背景（包括上白横线）
-    Mat dst1;
-    openReconstruct(image_gray, dst1, getStructuringElement(MORPH_RECT, Size(71, 1)));
+    cv::Mat dst1;
+    openReconstruct(image_gray, dst1, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(71, 1)));
 
     // 2. 将 原图 与 dst1 进行相减，目的是去除背景（包括上白横线）
-    Mat dst2;
-    subtract(image_gray, dst1, dst2);
+    cv::Mat dst2;
+    cv::subtract(image_gray, dst1, dst2);
 
     // 3. 对 dst2 进行重建开运算，目的是去除右白竖线，但损失了目标前景的竖线
-    Mat dst3;
-    openReconstruct(dst2, dst3, getStructuringElement(MORPH_RECT, Size(11, 1)));
+    cv::Mat dst3;
+    openReconstruct(dst2, dst3, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(11, 1)));
 
     // 4. 对 dst3 进行膨胀，目的是用于恢复目标前景的竖线
-    Mat dst4;
-    morphologyDilate(dst3, dst4, getStructuringElement(MORPH_RECT, Size(21, 1)));
+    cv::Mat dst4;
+    morphologyDilate(dst3, dst4, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(21, 1)));
 
     // 5. 对 dst2 与 dst4 进行最小化运算，目的是用于恢复目标前景的竖线
-    Mat dst5;
+    cv::Mat dst5;
     cv::min(dst2, dst4, dst5);
 
     // 6. 以 dst2 为模板对 dst5 进行膨胀重建，目的是恢复目标前景的竖线
-    Mat dst6;
+    cv::Mat dst6;
     dilateReconstruct(dst5, dst2, dst6);
 
-    namedWindow("src", WINDOW_NORMAL);
-    imshow("src", image_gray);
-    namedWindow("dst", WINDOW_NORMAL);
-    imshow("dst", dst6);
-    waitKey(0);
+    cv::namedWindow("src", cv::WINDOW_NORMAL);
+    cv::imshow("src", image_gray);
+    cv::namedWindow("dst", cv::WINDOW_NORMAL);
+    cv::imshow("dst", dst6);
+    cv::waitKey(0);
 }
 
 void globalThresholdEdgeOptExample() {
     // ------------ septagon-small.tif ------------
-    Mat image1 = imread(R"(../image/septagon-small.tif)", 0);
+    cv::Mat image1 = cv::imread(R"(../image/septagon-small.tif)", 0);
 
-    threshold(image1, image1, calcGlobalThresholdEdgeOpt(image1, 1, 0.997, 1), 255, THRESH_BINARY);
+    int thresh1 = calcGlobalThresholdEdgeOpt(image1, 1, 0.997, 1);
+    cv::threshold(image1, image1, thresh1, 255, cv::THRESH_BINARY);
 
-    namedWindow("image1", WINDOW_AUTOSIZE);
-    imshow("image1", image1);
-    waitKey(0);
+    cv::namedWindow("image1", cv::WINDOW_AUTOSIZE);
+    cv::imshow("image1", image1);
+    cv::waitKey(0);
 
-    // ------------ yeast-cells.tif ------------
-    Mat image21 = imread(R"(../image/yeast-cells.tif)", 0);
+    // ------------ yeast-cells.tif 1 ------------
+    cv::Mat image21 = cv::imread(R"(../image/yeast-cells.tif)", 0);
 
-    threshold(image21, image21, calcGlobalThresholdEdgeOpt(image21, 2, 0.995, 2), 255, THRESH_BINARY);
+    int thresh21 = calcGlobalThresholdEdgeOpt(image21, 2, 0.995, 2);
+    cv::threshold(image21, image21, thresh21, 255, cv::THRESH_BINARY);
 
-    namedWindow("image21", WINDOW_AUTOSIZE);
-    imshow("image21", image21);
-    waitKey(0);
+    cv::namedWindow("image21", cv::WINDOW_AUTOSIZE);
+    cv::imshow("image21", image21);
+    cv::waitKey(0);
 
-    Mat image22 = imread(R"(../image/yeast-cells.tif)", 0);
+    // ------------ yeast-cells.tif 2 ------------
+    cv::Mat image22 = cv::imread(R"(../image/yeast-cells.tif)", 0);
 
-    threshold(image22, image22, calcGlobalThresholdEdgeOpt(image22, 2, 0.519, 2), 255, THRESH_BINARY);
+    int thresh22 = calcGlobalThresholdEdgeOpt(image22, 2, 0.519, 2);
+    cv::threshold(image22, image22, thresh22, 255, cv::THRESH_BINARY);
 
-    namedWindow("image22", WINDOW_AUTOSIZE);
-    imshow("image22", image22);
-    waitKey(0);
+    cv::namedWindow("image22", cv::WINDOW_AUTOSIZE);
+    cv::imshow("image22", image22);
+    cv::waitKey(0);
 }

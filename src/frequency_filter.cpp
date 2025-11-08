@@ -1,16 +1,20 @@
 #include "frequency_filter.h"
 
 
-void dftShift(Mat &image) {
+void dftShift(cv::Mat &image) {
+    if (image.empty()) {
+        THROW_ARG_ERROR("Input image is empty.");
+    }
+
     int cx = image.cols / 2;
     int cy = image.rows / 2;
 
     // 重新排列傅里叶图像的象限
-    Mat tmp;
-    Mat q0(image, Rect(0, 0, cx, cy));
-    Mat q1(image, Rect(cx, 0, cx, cy));
-    Mat q2(image, Rect(0, cy, cx, cy));
-    Mat q3(image, Rect(cx, cy, cx, cy));
+    cv::Mat tmp;
+    cv::Mat q0(image, cv::Rect(0, 0, cx, cy));
+    cv::Mat q1(image, cv::Rect(cx, 0, cx, cy));
+    cv::Mat q2(image, cv::Rect(0, cy, cx, cy));
+    cv::Mat q3(image, cv::Rect(cx, cy, cx, cy));
 
     q0.copyTo(tmp);
     q3.copyTo(q0);
@@ -21,25 +25,25 @@ void dftShift(Mat &image) {
     tmp.copyTo(q2);
 }
 
-void spatialToFrequency(Mat &src, Mat &dst_complex) {
+void spatialToFrequency(const cv::Mat &src, cv::Mat &dst_complex) {
     if (src.empty()) {
-        throw invalid_argument("spatialToFrequency(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty.");
     }
 
     // 对输入矩阵进行零填充到合适的尺寸，使用镜像填充
-    int M = getOptimalDFTSize(src.rows);
-    int N = getOptimalDFTSize(src.cols);
-    Mat padded;
-    copyMakeBorder(src, padded, 0, M - src.rows, 0, N - src.cols, BORDER_REFLECT_101,
-                   Scalar::all(0));
+    int M = cv::getOptimalDFTSize(src.rows);
+    int N = cv::getOptimalDFTSize(src.cols);
+    cv::Mat padded;
+    cv::copyMakeBorder(src, padded, 0, M - src.rows, 0, N - src.cols, cv::BORDER_REFLECT_101,
+                       cv::Scalar::all(0));
 
     // 将输入矩阵拓展为复数，实部虚部均为浮点型
-    Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
-    Mat complex_image;
-    merge(planes, 2, complex_image);
+    cv::Mat planes[] = {cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F)};
+    cv::Mat complex_image;
+    cv::merge(planes, 2, complex_image);
 
     // 进行离散傅里叶变换
-    dft(complex_image, complex_image);
+    cv::dft(complex_image, complex_image);
 
     // 重新排列傅里叶图像的象限，使原点位于图像中心
     dftShift(complex_image);
@@ -47,62 +51,59 @@ void spatialToFrequency(Mat &src, Mat &dst_complex) {
     complex_image.copyTo(dst_complex);
 }
 
-void splitFrequencyMagnitude(Mat &src_complex, Mat &dst_magnitude) {
+void splitFrequencyMagnitude(const cv::Mat &src_complex, cv::Mat &dst_magnitude) {
     if (src_complex.empty()) {
-        throw invalid_argument("splitFrequencyMagnitude(): Input image is empty!");
+        THROW_ARG_ERROR("Input src complex image is empty!");
     }
 
     // 从复数输出矩阵中分离出实部（即幅值）
-    Mat planes[2];
-    Mat magnitude_image;
-    split(src_complex, planes);
-    magnitude(planes[0], planes[1], magnitude_image);
+    cv::Mat planes[2];
+    cv::Mat magnitude_image;
+    cv::split(src_complex, planes);
+    cv::magnitude(planes[0], planes[1], magnitude_image);
 
     // 对实部进行对数变换，即 compute log(1 + sqrt(Re(DFT(src))**2 + Im(DFT(src))**2))
-    magnitude_image += Scalar::all(1);
-    log(magnitude_image, magnitude_image);
+    magnitude_image += cv::Scalar::all(1);
+    cv::log(magnitude_image, magnitude_image);
 
     // 将频谱的行数和列数裁剪至偶数
-    magnitude_image = magnitude_image(Rect(0, 0, magnitude_image.cols & -2, magnitude_image.rows & -2));
+    magnitude_image = magnitude_image(cv::Rect(0, 0, magnitude_image.cols & -2, magnitude_image.rows & -2));
 
-    // 对幅值进行归一化操作，因为 type 为 float，所以用 imshow() 时会将像素值乘以 255
-    normalize(magnitude_image, magnitude_image, 0, 1, NORM_MINMAX);
+    // 对幅值进行归一化操作，因为 type 为 float，所以用 cv::imshow() 时会将像素值乘以 255
+    cv::normalize(magnitude_image, magnitude_image, 0, 1, cv::NORM_MINMAX);
 
     magnitude_image.copyTo(dst_magnitude);
 }
 
-void frequencyToSpatial(Mat &src_complex, Mat &dst) {
+void frequencyToSpatial(const cv::Mat &src_complex, cv::Mat &dst, const cv::Size &original_size) {
     if (src_complex.empty()) {
-        throw invalid_argument("frequencyToSpatial(): Input image is empty!");
+        THROW_ARG_ERROR("Input src complex image is empty!");
+    }
+    if (original_size.width <= 0 || original_size.height <= 0) {
+        THROW_ARG_ERROR("Invalid `original_size`.");
     }
 
-    // 为确保输出图像与原图像的尺寸一致，应初始化并传入正确尺寸的 dst 对象，
-    // 如：Mat dst = Mat::zeros(src.size(), src.depth());
-    if (dst.empty()) {
-        throw invalid_argument("frequencyToSpatial(): Dst size unknown!");
-    }
-
-    Mat dft_complex = src_complex.clone();
+    cv::Mat dft_complex = src_complex.clone();
 
     // 重新排列傅里叶图像的象限，使原点位于图像四角
     dftShift(dft_complex);
 
     // 进行反离散傅里叶变换并直接输出实部
-    Mat idft_real;
-    idft(dft_complex, idft_real, DFT_REAL_OUTPUT);
+    cv::Mat idft_real;
+    cv::idft(dft_complex, idft_real, cv::DFT_REAL_OUTPUT);
 
     // 裁剪至原尺寸
-    idft_real = idft_real(Rect(0, 0, dst.cols, dst.rows));
+    idft_real = idft_real(cv::Rect(0, 0, original_size.width, original_size.height));
 
     idft_real.copyTo(dst);
 }
 
-Mat idealLowPassFreqKernel(Size size, int sigma) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat idealLowPassFreqKernel(const cv::Size &size, int sigma) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1, D(u, v) <= D0
@@ -111,8 +112,8 @@ Mat idealLowPassFreqKernel(Size size, int sigma) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
             if (d <= sigma) {
                 kernel.at<float>(i, j) = 1;
             } else {
@@ -124,12 +125,12 @@ Mat idealLowPassFreqKernel(Size size, int sigma) {
     return kernel;
 }
 
-Mat gaussLowPassFreqKernel(Size size, int sigma) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat gaussLowPassFreqKernel(const cv::Size &size, int sigma) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = e^(-(D^2) / (2 * D0^2))
@@ -137,9 +138,9 @@ Mat gaussLowPassFreqKernel(Size size, int sigma) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
-            double h = exp(-1 * pow(d, 2) / (2 * pow(sigma, 2)));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
+            double h = std::exp(-1 * std::pow(d, 2) / (2 * std::pow(sigma, 2)));
             kernel.at<float>(i, j) = (float) h;
         }
     }
@@ -147,12 +148,12 @@ Mat gaussLowPassFreqKernel(Size size, int sigma) {
     return kernel;
 }
 
-Mat bwLowPassFreqKernel(Size size, int sigma, int order) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat bwLowPassFreqKernel(const cv::Size &size, int sigma, int order) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 / (1 + (D / D0)^(2n))
@@ -160,9 +161,9 @@ Mat bwLowPassFreqKernel(Size size, int sigma, int order) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
-            double h = 1 / (1 + pow(d / sigma, 2 * order));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
+            double h = 1 / (1 + std::pow(d / sigma, 2 * order));
             kernel.at<float>(i, j) = (float) h;
         }
     }
@@ -170,12 +171,12 @@ Mat bwLowPassFreqKernel(Size size, int sigma, int order) {
     return kernel;
 }
 
-Mat idealHighPassFreqKernel(Size size, int sigma) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat idealHighPassFreqKernel(const cv::Size &size, int sigma) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 0, D(u, v) <= D0
@@ -184,8 +185,8 @@ Mat idealHighPassFreqKernel(Size size, int sigma) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
             if (d <= sigma) {
                 kernel.at<float>(i, j) = 0;
             } else {
@@ -197,12 +198,12 @@ Mat idealHighPassFreqKernel(Size size, int sigma) {
     return kernel;
 }
 
-Mat gaussHighPassFreqKernel(Size size, int sigma) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat gaussHighPassFreqKernel(const cv::Size &size, int sigma) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 - e^(-(D^2) / (2 * D0^2))
@@ -210,9 +211,9 @@ Mat gaussHighPassFreqKernel(Size size, int sigma) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
-            double h = 1 - exp(-1 * pow(d, 2) / (2 * pow(sigma, 2)));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
+            double h = 1 - std::exp(-1 * std::pow(d, 2) / (2 * std::pow(sigma, 2)));
             kernel.at<float>(i, j) = (float) h;
         }
     }
@@ -220,12 +221,12 @@ Mat gaussHighPassFreqKernel(Size size, int sigma) {
     return kernel;
 }
 
-Mat bwHighPassFreqKernel(Size size, int sigma, int order) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat bwHighPassFreqKernel(const cv::Size &size, int sigma, int order) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 / (1 + (D0 / D)^(2n))
@@ -233,9 +234,9 @@ Mat bwHighPassFreqKernel(Size size, int sigma, int order) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
-            double h = 1 / (1 + pow(sigma / d, 2 * order));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
+            double h = 1 / (1 + std::pow(sigma / d, 2 * order));
             kernel.at<float>(i, j) = (float) h;
         }
     }
@@ -243,12 +244,12 @@ Mat bwHighPassFreqKernel(Size size, int sigma, int order) {
     return kernel;
 }
 
-Mat highFreqEmphasisKernel(Size size, int sigma, float k1, float k2) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat highFreqEmphasisKernel(const cv::Size &size, int sigma, float k1, float k2) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = k1 + k2 * (1 - e^(-(D^2) / (2 * D0^2)))
@@ -256,9 +257,9 @@ Mat highFreqEmphasisKernel(Size size, int sigma, float k1, float k2) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
-            double h = k1 + k2 * (1 - exp(-1 * pow(d, 2) / (2 * pow(sigma, 2))));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
+            double h = k1 + k2 * (1 - std::exp(-1 * std::pow(d, 2) / (2 * std::pow(sigma, 2))));
             kernel.at<float>(i, j) = (float) (h);
         }
     }
@@ -266,12 +267,19 @@ Mat highFreqEmphasisKernel(Size size, int sigma, float k1, float k2) {
     return kernel;
 }
 
-Mat homomorphicEmphasisKernel(Size size, int sigma, float gamma_h, float gamma_l, int c) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat homomorphicEmphasisKernel(const cv::Size &size, int sigma, float gamma_h, float gamma_l, int c) {
+    if (gamma_h < 1) {
+        THROW_ARG_ERROR("Invalid `gamma_h`: {}. You should make sure `gamma_h >= 1`.", gamma_h);
+    }
+    if (gamma_l <= 0 || gamma_l >= 1) {
+        THROW_ARG_ERROR("Invalid `gamma_l`: {}. You should make sure `0 < gamma_l < 1`.", gamma_l);
+    }
 
-    Mat kernel(t_size, CV_32FC1);
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
+
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = (gh - gl) * (1 - e^(-c * (D^2) / (D0^2))) + gl
@@ -279,9 +287,9 @@ Mat homomorphicEmphasisKernel(Size size, int sigma, float gamma_h, float gamma_l
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
-            double h = (gamma_h - gamma_l) * (1 - exp(-1 * c * pow(d, 2) / pow(sigma, 2))) + gamma_l;
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
+            double h = (gamma_h - gamma_l) * (1 - std::exp(-1 * c * std::pow(d, 2) / std::pow(sigma, 2))) + gamma_l;
             kernel.at<float>(i, j) = (float) (h);
         }
     }
@@ -289,12 +297,12 @@ Mat homomorphicEmphasisKernel(Size size, int sigma, float gamma_h, float gamma_l
     return kernel;
 }
 
-Mat idealBandRejectFreqKernel(Size size, int C0, int width) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat idealBandRejectFreqKernel(const cv::Size &size, int C0, int width) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 0, C0 - W/2 <= D(u, v) <= C0 + W/2
@@ -303,8 +311,8 @@ Mat idealBandRejectFreqKernel(Size size, int C0, int width) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
             if ((C0 - width / 2.0 <= d) && (d <= C0 + width / 2.0)) {
                 kernel.at<float>(i, j) = 0;
             } else {
@@ -316,12 +324,12 @@ Mat idealBandRejectFreqKernel(Size size, int C0, int width) {
     return kernel;
 }
 
-Mat gaussBandRejectFreqKernel(Size size, int C0, int width) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat gaussBandRejectFreqKernel(const cv::Size &size, int C0, int width) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 - e^(-((D^2 - C0^2) / (D * W))^2)
@@ -329,9 +337,9 @@ Mat gaussBandRejectFreqKernel(Size size, int C0, int width) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
-            double h = 1 - exp(-1 * pow((pow(d, 2) - pow(C0, 2)) / (d * width), 2));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
+            double h = 1 - std::exp(-1 * std::pow((std::pow(d, 2) - std::pow(C0, 2)) / (d * width), 2));
             kernel.at<float>(i, j) = (float) h;
         }
     }
@@ -339,12 +347,12 @@ Mat gaussBandRejectFreqKernel(Size size, int C0, int width) {
     return kernel;
 }
 
-Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat bwBandRejectFreqKernel(const cv::Size &size, int C0, int width, int order) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = 1 / (1 + ((D * W) / (D^2 - C0^2))^(2n))
@@ -352,9 +360,9 @@ Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d = sqrt(
-                    pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2));
-            double h = 1 / (1 + pow((d * width) / (pow(d, 2) - pow(C0, 2)), 2 * order));
+            double d = std::sqrt(std::pow((float) i - (float) t_size.height / 2, 2) +
+                                 std::pow((float) j - (float) t_size.width / 2, 2));
+            double h = 1 / (1 + std::pow((d * width) / (std::pow(d, 2) - std::pow(C0, 2)), 2 * order));
             kernel.at<float>(i, j) = (float) h;
         }
     }
@@ -362,55 +370,63 @@ Mat bwBandRejectFreqKernel(Size size, int C0, int width, int order) {
     return kernel;
 }
 
-void frequencyFilter(Mat &src, Mat &dst, Mat &kernel, bool rm_negative) {
+void frequencyFilter(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel, bool rm_negative) {
     if (src.empty()) {
-        throw invalid_argument("frequencyFilter(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty!");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
+    }
+    if (kernel.size() != src.size()) {
+        THROW_ARG_ERROR("The input kernel size must be the same as the input src image size.");
     }
 
     // 转到频率域
-    Mat image_frequency;
+    cv::Mat image_frequency;
     spatialToFrequency(src, image_frequency);
 
     // 分离
-    Mat planes[2];
-    split(image_frequency, planes);
+    cv::Mat planes[2];
+    cv::split(image_frequency, planes);
 
     // 处理
-    Mat image_real, image_imaginary;
-    multiply(planes[0], kernel, image_real);
-    multiply(planes[1], kernel, image_imaginary);
+    cv::Mat image_real, image_imaginary;
+    cv::multiply(planes[0], kernel, image_real);
+    cv::multiply(planes[1], kernel, image_imaginary);
 
     // 合并
     planes[0] = image_real;
     planes[1] = image_imaginary;
-    merge(planes, 2, image_frequency);
+    cv::merge(planes, 2, image_frequency);
 
     // 转到空间域
-    image_real = Mat::zeros(src.size(), src.depth());
-    frequencyToSpatial(image_frequency, image_real);
+    image_real = cv::Mat::zeros(src.size(), src.depth());
+    frequencyToSpatial(image_frequency, image_real, src.size());
 
     // remove negative value 将负值置为零
     if (rm_negative) {
         for (int i = 0; i < image_real.rows; i++) {
             for (int j = 0; j < image_real.cols; j++) {
                 float m = image_real.at<float>(i, j);
-                if (m < 0) image_real.at<float>(i, j) = 0;
+                if (m < 0) {
+                    image_real.at<float>(i, j) = 0;
+                }
             }
         }
     }
 
     // 对幅值进行归一化操作，转换为 CV_8U [0, 255]
-    normalize(image_real, image_real, 0, 255, NORM_MINMAX, CV_8U);
+    cv::normalize(image_real, image_real, 0, 255, cv::NORM_MINMAX, CV_8U);
 
     image_real.copyTo(dst);
 }
 
-Mat laplaceFreqKernel(Size size) {
-    int M = getOptimalDFTSize(size.height);
-    int N = getOptimalDFTSize(size.width);
-    Size t_size = Size(N, M);
+cv::Mat laplaceFreqKernel(const cv::Size &size) {
+    int M = cv::getOptimalDFTSize(size.height);
+    int N = cv::getOptimalDFTSize(size.width);
+    cv::Size t_size = cv::Size(N, M);
 
-    Mat kernel(t_size, CV_32FC1);
+    cv::Mat kernel(t_size, CV_32FC1);
 
     /* 传递函数：
        H(u, v) = -4 * pi^2 * D^2
@@ -418,8 +434,9 @@ Mat laplaceFreqKernel(Size size) {
     */
     for (int i = 0; i < t_size.height; i++) {
         for (int j = 0; j < t_size.width; j++) {
-            double d2 = pow((float) i - (float) t_size.height / 2, 2) + pow((float) j - (float) t_size.width / 2, 2);
-            double h = -4 * pow(math_pi, 2) * d2;
+            double d2 = std::pow((float) i - (float) t_size.height / 2, 2) +
+                        std::pow((float) j - (float) t_size.width / 2, 2);
+            double h = -4 * std::pow(CV_PI, 2) * d2;
             kernel.at<float>(i, j) = (float) h;
         }
     }
@@ -427,86 +444,104 @@ Mat laplaceFreqKernel(Size size) {
     return kernel;
 }
 
-void freqSharpenLaplace(Mat &src, Mat &dst) {
+void freqSharpenLaplace(const cv::Mat &src, cv::Mat &dst) {
     if (src.empty()) {
-        throw invalid_argument("freqSharpenLaplace(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty!");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
     }
 
     // 拉普拉斯锐化
-    Mat image_lf;
-    Mat kernel = laplaceFreqKernel(src.size());
+    cv::Mat image_lf;
+    cv::Mat kernel = laplaceFreqKernel(src.size());
     frequencyFilter(src, image_lf, kernel);
 
     // 增强：g(x, y) = f(x, y) - image_lf(x, y)
-    Mat image_g;
-    subtract(src, image_lf, image_g);
+    cv::Mat image_g;
+    cv::subtract(src, image_lf, image_g);
 
     image_g.copyTo(dst);
 }
 
-void frequencyFilterPlMul(Mat &src, Mat &dst, Mat &kernel, bool rm_negative) {
+void frequencyFilterPlMul(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel, bool rm_negative) {
     if (src.empty()) {
-        throw invalid_argument("frequencyFilterPlMul(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty!");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
+    }
+    if (kernel.size() != src.size()) {
+        THROW_ARG_ERROR("The input kernel size must be the same as the input src image size.");
+    }
+    if (kernel.type() != CV_32FC2) {
+        THROW_ARG_ERROR("Input kernel type must be CV_32FC2.");
     }
 
     // 转到频率域
-    Mat image_frequency;
+    cv::Mat image_frequency;
     spatialToFrequency(src, image_frequency);
 
     // 频率域 复数乘法
     // a * b = (a1 + i*a2) * (b1 + i*b2)
     //       = a1*b1 + i*(a1*b2 + a2*b1) - b2*a2
     //       = (a1*b1 - a2*b2) + i*(a1*b2 + a2*b1)
-    mulSpectrums(image_frequency, kernel, image_frequency, 0);
+    cv::mulSpectrums(image_frequency, kernel, image_frequency, 0);
 
     // 转到空间域
-    Mat image_real;
-    image_real = Mat::zeros(src.size(), src.depth());
-    frequencyToSpatial(image_frequency, image_real);
+    cv::Mat image_real;
+    image_real = cv::Mat::zeros(src.size(), src.depth());
+    frequencyToSpatial(image_frequency, image_real, src.size());
 
     // remove negative value 将负值置为零
     if (rm_negative) {
         for (int i = 0; i < image_real.rows; i++) {
             for (int j = 0; j < image_real.cols; j++) {
                 float m = image_real.at<float>(i, j);
-                if (m < 0) image_real.at<float>(i, j) = 0;
+                if (m < 0) {
+                    image_real.at<float>(i, j) = 0;
+                }
             }
         }
     }
 
     // 对幅值进行归一化操作，转换为 CV_8U [0, 255]
-    normalize(image_real, image_real, 0, 255, NORM_MINMAX, CV_8U);
+    cv::normalize(image_real, image_real, 0, 255, cv::NORM_MINMAX, CV_8U);
 
     image_real.copyTo(dst);
 }
 
-void bestNotchFilter(Mat &src, Mat &dst, Mat &nbp_kernel, Size opt_ksize) {
+void bestNotchFilter(const cv::Mat &src, cv::Mat &dst, const cv::Mat &nbp_kernel, const cv::Size &opt_ksize) {
     if (src.empty()) {
-        throw invalid_argument("bestNotchFilter(): Input image is empty!");
+        THROW_ARG_ERROR("Input src image is empty!");
     }
-
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
+    }
+    if (nbp_kernel.size() != src.size()) {
+        THROW_ARG_ERROR("The input nbp kernel size must be the same as the input src image size.");
+    }
     if ((opt_ksize.width <= 0) || (opt_ksize.width % 2 == 0) || (opt_ksize.height <= 0) ||
         (opt_ksize.height % 2 == 0)) {
-        string err = R"(bestNotchFilter(): Parameter Error! You should make sure opt_ksize is positive odd number!)";
-        throw invalid_argument(err);
+        THROW_ARG_ERROR("Invalid `opt_ksize`. You should make sure opt_ksize is positive odd number.");
     }
 
     // 通过 陷波带通滤波器 获取噪声图像
-    Mat noise;
+    cv::Mat noise;
     frequencyFilter(src, noise, nbp_kernel);  // TODO: rm_negative 参数 待测试
 
     int row_border = (opt_ksize.height - 1) / 2;
     int col_border = (opt_ksize.width - 1) / 2;
 
-    Mat src_copy;
-    copyMakeBorder(src, src_copy, row_border, row_border, col_border, col_border, BORDER_REFLECT);
-    copyMakeBorder(noise, noise, row_border, row_border, col_border, col_border, BORDER_REFLECT);
+    cv::Mat src_copy;
+    cv::copyMakeBorder(src, src_copy, row_border, row_border, col_border, col_border, cv::BORDER_REFLECT);
+    cv::copyMakeBorder(noise, noise, row_border, row_border, col_border, col_border, cv::BORDER_REFLECT);
 
-    Mat temp = Mat::zeros(src_copy.size(), src_copy.type());
-    vector<int> g_values{};
-    vector<int> n_values{};
-    vector<int> gn_values{};
-    vector<int> n2_values{};
+    cv::Mat temp = cv::Mat::zeros(src_copy.size(), src_copy.type());
+    std::vector<int> g_values{};
+    std::vector<int> n_values{};
+    std::vector<int> gn_values{};
+    std::vector<int> n2_values{};
 
     for (int i = row_border; i < src_copy.rows - row_border; i++) {
         for (int j = col_border; j < src_copy.cols - col_border; j++) {
@@ -526,10 +561,14 @@ void bestNotchFilter(Mat &src, Mat &dst, Mat &nbp_kernel, Size opt_ksize) {
             }
 
             // 计算参数
-            double g_mean = (double) accumulate(begin(g_values), end(g_values), 0) / (double) g_values.size();
-            double n_mean = (double) accumulate(begin(n_values), end(n_values), 0) / (double) n_values.size();
-            double gn_mean = (double) accumulate(begin(gn_values), end(gn_values), 0) / (double) gn_values.size();
-            double n2_mean = (double) accumulate(begin(n2_values), end(n2_values), 0) / (double) n2_values.size();
+            double g_mean =
+                    (double) std::accumulate(std::begin(g_values), std::end(g_values), 0) / (double) g_values.size();
+            double n_mean =
+                    (double) std::accumulate(std::begin(n_values), std::end(n_values), 0) / (double) n_values.size();
+            double gn_mean =
+                    (double) std::accumulate(std::begin(gn_values), std::end(gn_values), 0) / (double) gn_values.size();
+            double n2_mean =
+                    (double) std::accumulate(std::begin(n2_values), std::end(n2_values), 0) / (double) n2_values.size();
 
             // 赋值
             temp.at<uchar>(i, j) = (int) (src_copy.at<uchar>(i, j) -
@@ -538,7 +577,7 @@ void bestNotchFilter(Mat &src, Mat &dst, Mat &nbp_kernel, Size opt_ksize) {
         }
     }
 
-    Mat temp_roi = temp(Rect(col_border, row_border, src.cols, src.rows));
+    cv::Mat temp_roi = temp(cv::Rect(col_border, row_border, src.cols, src.rows));
 
     temp_roi.copyTo(dst);
 }

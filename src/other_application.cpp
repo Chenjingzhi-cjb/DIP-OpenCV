@@ -5,17 +5,17 @@
 cv::Point2d
 matchTemplateSubPixelByPhaseCorrelation(const cv::Mat &image_tmpl, const cv::Mat &image_dst, const cv::Point &max_loc) {
     if (max_loc.x + image_tmpl.cols > image_dst.cols || max_loc.y + image_tmpl.rows > image_dst.rows) {
-        std::cout << "calcTemplatePosition() Error: The max_roi out of bounds for phase correlation" << std::endl;
+        Log_ERROR("The max_roi out of bounds for phase correlation.");
         return {0.0, 0.0};
     }
 
     cv::Mat tmpl_32FC1, dst_32FC1;
     image_tmpl.convertTo(tmpl_32FC1, CV_32F);
     image_dst.convertTo(dst_32FC1, CV_32F);
-    if (tmpl_32FC1.channels() > 1) {
+    if (tmpl_32FC1.channels() == 3) {
         cv::cvtColor(tmpl_32FC1, tmpl_32FC1, cv::COLOR_BGR2GRAY);
     }
-    if (dst_32FC1.channels() > 1) {
+    if (dst_32FC1.channels() == 3) {
         cv::cvtColor(dst_32FC1, dst_32FC1, cv::COLOR_BGR2GRAY);
     }
 
@@ -52,8 +52,7 @@ cv::Point2d matchTemplateSubPixelByCorner(const cv::Mat &result, const cv::Point
         // 统一返回增量
         return {corners[0].x - (float) max_loc.x, corners[0].y - (float) max_loc.y};
     } else {
-        std::cout << "calcTemplatePosition() Error: Peak too close to edge, skipping sub-pixel refinement."
-                  << std::endl;
+        Log_ERROR("Peak too close to edge, skipping sub-pixel refinement.");
     }
 
     return {0.0, 0.0};
@@ -70,27 +69,32 @@ cv::Point2d matchTemplateSubPixelByQuadInterp(const cv::Mat &result, const cv::P
         float up = result.at<float>(max_loc.y - 1, max_loc.x);
         float down = result.at<float>(max_loc.y + 1, max_loc.x);
 
-        // 计算 X 方向的亚像素偏移，注意如果分母接近0，说明曲线是平的或线性的，无法计算偏移
+        // 计算 X 方向的亚像素偏移，注意如果分母接近 0，说明曲线是平的或线性的，无法计算偏移
         double dx = 0.0;
         double denominator_x = 2 * (left - 2 * center + right);
         if (std::abs(denominator_x) > 1e-6) {
             dx = (left - right) / denominator_x;
+        } else {
+            Log_ERROR("Cannot calculate sub-pixel offset in X direction, curve is flat or linear.");
         }
 
-        // 计算 Y 方向的亚像素偏移，注意如果分母接近0，说明曲线是平的或线性的，无法计算偏移
+        // 计算 Y 方向的亚像素偏移，注意如果分母接近 0，说明曲线是平的或线性的，无法计算偏移
         double dy = 0.0;
         double denominator_y = 2 * (up - 2 * center + down);
         if (std::abs(denominator_y) > 1e-6) {
             dy = (up - down) / denominator_y;
+        } else {
+            Log_ERROR("Cannot calculate sub-pixel offset in Y direction, curve is flat or linear.");
         }
 
         // 计算结果检查，偏移量应该在 [-0.5, 0.5] 范围内，如果超出，说明该峰值可能不是真正的极值点
         if (std::abs(dx) <= 0.5 && std::abs(dy) <= 0.5) {
             return {dx, dy};
+        } else {
+            Log_ERROR("Sub-pixel offset out of range, peak may not be a true extremum.");
         }
     } else {
-        std::cout << "calcTemplatePosition() Error: Peak is on the edge, cannot perform sub-pixel refinement."
-                  << std::endl;
+        Log_ERROR("Peak is on the edge, cannot perform sub-pixel refinement.");
     }
 
     return {0.0, 0.0};
@@ -134,14 +138,17 @@ cv::Point2d matchTemplateSubPixelByGaussian(const cv::Mat &result, const cv::Poi
                 // 限制偏移量在合理范围内
                 if (std::abs(delta[0]) <= 0.5 && std::abs(delta[1]) <= 0.5) {
                     return {delta[0], delta[1]};
+                } else {
+                    Log_ERROR("Sub-pixel offset out of range, peak may not be a true extremum.");
                 }
             } catch (const cv::Exception &e) {
-                std::cout << "calcTemplatePosition() Error: Matrix solve failed: " << e.what() << std::endl;
+                Log_ERROR("Matrix solve failed: {}", e.what());
             }
+        } else {
+            Log_ERROR("Hessian matrix is not negative definite, peak may not be a true extremum.");
         }
     } else {
-        std::cout << "calcTemplatePosition() Error: Peak is on the edge, cannot perform sub-pixel refinement."
-                  << std::endl;
+        Log_ERROR("Peak is on the edge, cannot perform sub-pixel refinement.");
     }
 
     return {0.0, 0.0};
@@ -149,13 +156,17 @@ cv::Point2d matchTemplateSubPixelByGaussian(const cv::Mat &result, const cv::Poi
 
 double
 calcTemplatePosition(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Point2d &position, bool sub_pixel) {
-    if (image_tmpl.empty() || image_dst.empty()) {
-        throw std::invalid_argument("calcTemplatePosition() Error: Input image is empty!");
+    if (image_tmpl.empty()) {
+        Log_ERROR("Input tmpl image is empty.");
+        return 0;
     }
-
+    if (image_dst.empty()) {
+        Log_ERROR("Input dst image is empty.");
+        return 0;
+    }
     if (image_tmpl.cols > image_dst.cols || image_tmpl.rows > image_dst.rows) {
-        throw std::invalid_argument(
-                "calcTemplatePosition() Error: Template dimensions must be smaller than or equal to the destination image.");
+        Log_ERROR("The template image size must be smaller than or equal to the destination image size.");
+        return 0;
     }
 
     // 进行模板匹配
@@ -187,12 +198,17 @@ calcTemplatePosition(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Po
 }
 
 double calcImageOffset(const cv::Mat &image_src, const cv::Mat &image_dst, cv::Point2d &offset) {
-    if (image_src.empty() || image_dst.empty()) {
-        throw std::invalid_argument("calcImageOffset() Error: Input image is empty!");
+    if (image_src.empty()) {
+        Log_ERROR("Input src image is empty.");
+        return 0;
     }
-
+    if (image_dst.empty()) {
+        Log_ERROR("Input dst image is empty.");
+        return 0;
+    }
     if (image_src.size() != image_dst.size()) {
-        throw std::invalid_argument("calcImageOffset() Error: Input images must have the same dimensions.");
+        Log_ERROR("The size of src and the size of dst must be the same.");
+        return 0;
     }
 
     // 使用基于“FFT相位相关”和“加权质心亚像素插值”的算法来计算偏移量
@@ -211,8 +227,7 @@ double calcTemplatePositionByMatches(const cv::Mat &image_tmpl, const cv::Mat &i
                                      std::vector<cv::KeyPoint> &key_points_dst, std::vector<cv::DMatch> &good_matches,
                                      bool show_matches = false) {
     if (good_matches.size() < 4) {
-        std::cout << "calcTemplatePositionByMatches() Error: Not enough good matches to estimate transform."
-                  << std::endl;
+        Log_ERROR("Not enough good matches to estimate transform.");
         return 0;
     }
 
@@ -239,7 +254,7 @@ double calcTemplatePositionByMatches(const cv::Mat &image_tmpl, const cv::Mat &i
     cv::Mat M = cv::estimateAffinePartial2D(good_points_tmpl, good_points_dst, inliers_mask);
 
     if (M.empty()) {
-        std::cout << "calcTemplatePositionByMatches() Error: Transform estimation failed." << std::endl;
+        Log_ERROR("Transform estimation failed.");
         return 0;
     }
 
@@ -268,7 +283,7 @@ double calcTemplatePositionByMatches(const cv::Mat &image_tmpl, const cv::Mat &i
     return confidence;
 }
 
-void cornerDetectAndCompute(const cv::Mat &image, std::vector<cv::KeyPoint> &key_points, cv::Mat &descriptors,
+bool cornerDetectAndCompute(const cv::Mat &image, std::vector<cv::KeyPoint> &key_points, cv::Mat &descriptors,
                             CornerDescriptorType descriptor_type, int maxCorners, double qualityLevel,
                             double minDistance, cv::Size winSize, cv::TermCriteria criteria, int min_Corners,
                             float keypoint_diameter) {
@@ -276,8 +291,8 @@ void cornerDetectAndCompute(const cv::Mat &image, std::vector<cv::KeyPoint> &key
     std::vector<cv::Point2f> corners;
     cv::goodFeaturesToTrack(image, corners, maxCorners, qualityLevel, minDistance);
     if (corners.size() < min_Corners) {
-        std::cout << "cornerDetectAndCompute() Error: Insufficient number of corner points in image!" << std::endl;
-        return;
+        Log_ERROR("Insufficient number of corner points in image.");
+        return false;
     }
 
     // 角点亚像素精度优化
@@ -291,17 +306,19 @@ void cornerDetectAndCompute(const cv::Mat &image, std::vector<cv::KeyPoint> &key
 
     // 计算描述子
     cv::Mat _descriptors;
-    if (descriptor_type == CornerDescriptorType::ORB) {
-        cv::Ptr<cv::ORB> orb = cv::ORB::create();
-        orb->compute(image, _key_points, _descriptors);
-    } else if (descriptor_type == CornerDescriptorType::SIFT) {
+    if (descriptor_type == CornerDescriptorType::SIFT) {
         cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
         sift->compute(image, _key_points, _descriptors);
+    } else {  // descriptor_type == CornerDescriptorType::ORB
+        cv::Ptr<cv::ORB> orb = cv::ORB::create();
+        orb->compute(image, _key_points, _descriptors);
     }
 
     // 返回结果
     key_points = _key_points;
     descriptors = _descriptors;
+
+    return true;
 }
 
 bool
@@ -309,8 +326,7 @@ calcGoodMatchesByBFMatcher(std::vector<cv::KeyPoint> &key_points_tmpl, std::vect
                            cv::Mat &descriptors_tmpl, cv::Mat &descriptors_dst,
                            std::vector<cv::DMatch> &good_matches) {
     if (key_points_tmpl.empty() || key_points_dst.empty() || descriptors_tmpl.empty() || descriptors_dst.empty()) {
-        std::cout << "calcGoodMatchesByBFMatcher() Error: Not enough key points detected in one of the images."
-                  << std::endl;
+        Log_ERROR("Not enough key points detected in one of the images.");
         return false;
     }
 
@@ -320,7 +336,7 @@ calcGoodMatchesByBFMatcher(std::vector<cv::KeyPoint> &key_points_tmpl, std::vect
     matcher->match(descriptors_tmpl, descriptors_dst, matches);
 
     if (matches.empty()) {
-        std::cout << "calcGoodMatchesByBFMatcher() Error: No matches found." << std::endl;
+        Log_ERROR("No matches found.");
         return false;
     }
 
@@ -341,8 +357,7 @@ calcGoodMatchesByFLANNMatcher(std::vector<cv::KeyPoint> &key_points_tmpl, std::v
                               cv::Mat &descriptors_tmpl, cv::Mat &descriptors_dst,
                               std::vector<cv::DMatch> &good_matches) {
     if (key_points_tmpl.empty() || key_points_dst.empty() || descriptors_tmpl.empty() || descriptors_dst.empty()) {
-        std::cout << "calcGoodMatchesByFLANNMatcher() Error: Not enough key points detected in one of the images."
-                  << std::endl;
+        Log_ERROR("Not enough key points detected in one of the images.");
         return false;
     }
 
@@ -352,7 +367,7 @@ calcGoodMatchesByFLANNMatcher(std::vector<cv::KeyPoint> &key_points_tmpl, std::v
     matcher->knnMatch(descriptors_tmpl, descriptors_dst, knn_matches, 2);
 
     if (knn_matches.empty()) {
-        std::cout << "calcGoodMatchesByFLANNMatcher() Error: No matches found." << std::endl;
+        Log_ERROR("No matches found.");
         return false;
     }
 
@@ -372,13 +387,17 @@ calcGoodMatchesByFLANNMatcher(std::vector<cv::KeyPoint> &key_points_tmpl, std::v
 double
 calcTemplatePositionORB(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Point2d &position, double *scale,
                         double *angle, int pre_features_num) {
-    if (image_tmpl.empty() || image_dst.empty()) {
-        throw std::invalid_argument("calcTemplatePositionORB() Error: Input image is empty!");
+    if (image_tmpl.empty()) {
+        Log_ERROR("Input tmpl image is empty.");
+        return 0;
     }
-
+    if (image_dst.empty()) {
+        Log_ERROR("Input dst image is empty.");
+        return 0;
+    }
     if (image_tmpl.cols > image_dst.cols || image_tmpl.rows > image_dst.rows) {
-        throw std::invalid_argument(
-                "calcTemplatePositionORB() Error: Template dimensions must be smaller than or equal to the destination image.");
+        Log_ERROR("The template image size must be smaller than or equal to the destination image size.");
+        return 0;
     }
 
     // 初始化 ORB 检测器
@@ -402,13 +421,17 @@ calcTemplatePositionORB(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv:
 double
 calcTemplatePositionCorner(const cv::Mat &image_tmpl, const cv::Mat &image_dst, cv::Point2d &position, double *scale,
                            double *angle, CornerDescriptorType descriptor_type) {
-    if (image_tmpl.empty() || image_dst.empty()) {
-        throw std::invalid_argument("calcTemplatePositionCorner() Error: Input image is empty!");
+    if (image_tmpl.empty()) {
+        Log_ERROR("Input tmpl image is empty.");
+        return 0;
     }
-
+    if (image_dst.empty()) {
+        Log_ERROR("Input dst image is empty.");
+        return 0;
+    }
     if (image_tmpl.cols > image_dst.cols || image_tmpl.rows > image_dst.rows) {
-        throw std::invalid_argument(
-                "calcTemplatePositionCorner() Error: Template dimensions must be smaller than or equal to the destination image.");
+        Log_ERROR("The template image size must be smaller than or equal to the destination image size.");
+        return 0;
     }
 
     // 检测模板图像和目标图像的角点并计算特征点与描述子
@@ -418,13 +441,13 @@ calcTemplatePositionCorner(const cv::Mat &image_tmpl, const cv::Mat &image_dst, 
     cornerDetectAndCompute(image_dst, key_points_dst, descriptors_dst, descriptor_type);
 
     std::vector<cv::DMatch> good_matches;
-    if (descriptor_type == CornerDescriptorType::ORB) {
-        if (!calcGoodMatchesByBFMatcher(key_points_tmpl, key_points_dst, descriptors_tmpl, descriptors_dst,
-                                        good_matches))
-            return 0;
-    } else if (descriptor_type == CornerDescriptorType::SIFT) {
+    if (descriptor_type == CornerDescriptorType::SIFT) {
         if (!calcGoodMatchesByFLANNMatcher(key_points_tmpl, key_points_dst, descriptors_tmpl, descriptors_dst,
                                            good_matches))
+            return 0;
+    } else {  // descriptor_type == CornerDescriptorType::ORB
+        if (!calcGoodMatchesByBFMatcher(key_points_tmpl, key_points_dst, descriptors_tmpl, descriptors_dst,
+                                        good_matches))
             return 0;
     }
 
@@ -433,54 +456,55 @@ calcTemplatePositionCorner(const cv::Mat &image_tmpl, const cv::Mat &image_dst, 
 }
 
 // 计算图像的清晰度值（梯度方法）
-double calcSharpnessGradientScore(const Mat &image) {
-    Mat grad_x, grad_y;
-    Sobel(image, grad_x, CV_64F, 1, 0);
-    Sobel(image, grad_y, CV_64F, 0, 1);
-    Mat magnitude, angle;
-    cartToPolar(grad_x, grad_y, magnitude, angle);
+double calcSharpnessGradientScore(const cv::Mat &image) {
+    cv::Mat grad_x, grad_y;
+    cv::Sobel(image, grad_x, CV_64F, 1, 0);
+    cv::Sobel(image, grad_y, CV_64F, 0, 1);
+    cv::Mat magnitude, angle;
+    cv::cartToPolar(grad_x, grad_y, magnitude, angle);
 
-    Scalar mean_magnitude = mean(magnitude);
+    cv::Scalar mean_magnitude = cv::mean(magnitude);
     return mean_magnitude[0];
 }
 
 // 计算图像的清晰度值（方差方法）
-double calcSharpnessVarianceScore(const Mat &image) {
-    Mat mean, stddev;
-    meanStdDev(image, mean, stddev);
+double calcSharpnessVarianceScore(const cv::Mat &image) {
+    cv::Mat mean, stddev;
+    cv::meanStdDev(image, mean, stddev);
     return stddev.at<double>(0);
 }
 
 // 计算图像的清晰度值（频谱方法）
-double calcSharpnessSpectrumScore(const Mat &image) {
-    Mat complex_image;
+double calcSharpnessSpectrumScore(const cv::Mat &image) {
+    cv::Mat complex_image;
     image.convertTo(complex_image, CV_32F);
-    dft(complex_image, complex_image);
+    cv::dft(complex_image, complex_image);
 
     // 分离复数图像到实部和虚部
-    Mat planes[2];
-    split(complex_image, planes);
+    cv::Mat planes[2];
+    cv::split(complex_image, planes);
 
     // 计算幅度谱
-    Mat magnitude_image;
-    magnitude(planes[0], planes[1], magnitude_image);
+    cv::Mat magnitude_image;
+    cv::magnitude(planes[0], planes[1], magnitude_image);
 
-    Scalar mean_magnitude = mean(magnitude_image);
+    cv::Scalar mean_magnitude = cv::mean(magnitude_image);
     return mean_magnitude[0];
 }
 
 // 计算图像的清晰度值（能量方法）
-double calcSharpnessEnergyScore(const Mat &image) {
-    Mat squared_image;
-    multiply(image, image, squared_image);
-    Scalar sum_squared_image = sum(squared_image);
+double calcSharpnessEnergyScore(const cv::Mat &image) {
+    cv::Mat squared_image;
+    cv::multiply(image, image, squared_image);
+    cv::Scalar sum_squared_image = cv::sum(squared_image);
 
     return sum_squared_image[0];
 }
 
-double calcImageSharpness(Mat &image) {
+double calcImageSharpness(cv::Mat &image) {
     if (image.empty()) {
-        throw invalid_argument("calcImageSharpness(): Input image is empty!");
+        Log_ERROR("Input image is empty.");
+        return 0;
     }
 
     double gradient_score = calcSharpnessGradientScore(image);  // 梯度方法
@@ -489,10 +513,10 @@ double calcImageSharpness(Mat &image) {
 //    double energy_score = calcSharpnessEnergyScore(image);      // 能量方法
 
     // 输出清晰度值
-    cout << "Gradient Score: " << gradient_score << endl;
-//    cout << "Variance Score: " << variance_score << endl;
-//    cout << "Spectrum Score: " << spectrum_score << endl;
-//    cout << "Energy Score: " << energy_score << endl;
+    Log_INFO("Gradient Score: {}", gradient_score);
+//    Log_INFO("Variance Score: {}", variance_score);
+//    Log_INFO("Spectrum Score: {}", spectrum_score);
+//    Log_INFO("Energy Score: {}", energy_score);
 
     return gradient_score;
 }
@@ -616,14 +640,10 @@ double calcSharpnessOldOpt(cv::Mat *image, int part_count) {
                 current_row[col_no - 1] + current_row[col_no + 1] - next_row[col_no - 1] + next_row[col_no + 1] -
                 plus_next_row[col_no - 2] + plus_next_row[col_no + 2];
 
-        S_vertical += fabs(vertical_gradient);
-        S_horizontal += fabs(horizontal_gradient);
+        S_vertical += abs(vertical_gradient);
+        S_horizontal += abs(horizontal_gradient);
     }
     double S = S_vertical / (int) points.size() + S_horizontal / (int) points.size();
-
-//    std::cout << (int) points.size() << std::endl;
-//    std::cout << S << std::endl;
-//    getAndPrintTime();
 
     return S;
 }

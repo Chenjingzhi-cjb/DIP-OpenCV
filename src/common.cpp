@@ -1,149 +1,128 @@
 #include "common.h"
 
 
-void printImageData(const Mat &image, Size shrink_size, int preview_unit) {
+void printImageData(const cv::Mat &image, cv::Size shrink_size, int preview_unit) {
     if (image.empty()) {
-        throw invalid_argument("printImageData(): Input image is empty!");
+        THROW_ARG_ERROR("The input image is empty.");
     }
 
-    Mat temp = image.clone();
-    resize(temp, temp, shrink_size);
+    cv::Mat temp;
+    cv::resize(image, temp, shrink_size);
 
-    cout << "-------------------------------- Image Data --------------------------------" << endl;
+    std::cout << "-------------------------------- Image Data --------------------------------" << std::endl;
 
-    cout << "Size: " << temp.size() << endl;
-    cout << "Depth: " << temp.depth() << endl;
-    cout << "Channels: " << temp.channels() << endl;
+    std::cout << "Size: " << temp.size() << std::endl;
+    std::cout << "Depth: " << temp.depth() << std::endl;
+    std::cout << "Channels: " << temp.channels() << std::endl;
 
-    Scalar sum_value = sum(temp);
-    cout << "Sum value: " << sum_value << endl;
-    Scalar mean_value = mean(temp);
-    cout << "Mean value: " << mean_value << endl;
+    cv::Scalar sum_value = cv::sum(temp);
+    std::cout << "Sum value: " << sum_value << std::endl;
+    cv::Scalar mean_value = cv::mean(temp);
+    std::cout << "Mean value: " << mean_value << std::endl;
 
-    cout << "Image preview: " << endl;
+    std::cout << "Image preview: " << std::endl;
     for (int i = 0; i < preview_unit; i++) {
-        cout << "  ";
+        std::cout << "  ";
         for (int j = 0; j < preview_unit; j++) {
             int m = temp.at<uchar>(i, j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
-            cout << "..." << "\t";
+            std::cout << "..." << "\t";
         }
         for (int j = -1 * (preview_unit / 2); j <= 1 * (preview_unit / 2); j++) {
             int m = temp.at<uchar>(i, temp.cols / 2 + j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
-            cout << "..." << "\t";
+            std::cout << "..." << "\t";
         }
         for (int j = preview_unit; j > 0; j--) {
             int m = temp.at<uchar>(i, temp.cols - j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
-        cout << endl;
+        std::cout << std::endl;
     }
     for (int i = 0; i < preview_unit; i++) {
-        cout << "  ";
+        std::cout << "  ";
         for (int j = 0; j < (preview_unit * 5); j++) {
-            cout << "..." << "\t";
+            std::cout << "..." << "\t";
         }
-        cout << endl;
+        std::cout << std::endl;
     }
     for (int i = -1 * (preview_unit / 2); i <= 1 * (preview_unit / 2); i++) {
-        cout << "  ";
+        std::cout << "  ";
         for (int j = 0; j < preview_unit; j++) {
             int m = temp.at<uchar>(temp.rows / 2 + i, j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
-            cout << "..." << "\t";
+            std::cout << "..." << "\t";
         }
         for (int j = -1 * (preview_unit / 2); j <= 1 * (preview_unit / 2); j++) {
             int m = temp.at<uchar>(temp.rows / 2 + i, temp.cols / 2 + j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
-            cout << "..." << "\t";
+            std::cout << "..." << "\t";
         }
         for (int j = preview_unit; j > 0; j--) {
             int m = temp.at<uchar>(temp.rows / 2 + i, temp.cols - j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
-        cout << endl;
+        std::cout << std::endl;
     }
     for (int i = 0; i < preview_unit; i++) {
-        cout << "  ";
+        std::cout << "  ";
         for (int j = 0; j < (preview_unit * 5); j++) {
-            cout << "..." << "\t";
+            std::cout << "..." << "\t";
         }
-        cout << endl;
+        std::cout << std::endl;
     }
     for (int i = preview_unit; i > 0; i--) {
-        cout << "  ";
+        std::cout << "  ";
         for (int j = 0; j < preview_unit; j++) {
             int m = temp.at<uchar>(temp.rows - i, j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
-            cout << "..." << "\t";
+            std::cout << "..." << "\t";
         }
         for (int j = -1 * (preview_unit / 2); j <= 1 * (preview_unit / 2); j++) {
             int m = temp.at<uchar>(temp.rows - i, temp.cols / 2 + j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
         for (int j = 0; j < preview_unit; j++) {
-            cout << "..." << "\t";
+            std::cout << "..." << "\t";
         }
         for (int j = preview_unit; j > 0; j--) {
             int m = temp.at<uchar>(temp.rows - i, temp.cols - j);
-            cout << m << "\t";
+            std::cout << m << "\t";
         }
-        cout << endl;
+        std::cout << std::endl;
     }
 
-    cout << "----------------------------------------------------------------------------" << endl;
+    std::cout << "----------------------------------------------------------------------------" << std::endl;
 }
 
-void videoTraverse(VideoCapture &video) {
+void videoTraverse(cv::VideoCapture &video) {
     if (!video.isOpened()) {
-        throw invalid_argument("videoTraverse(): Video loading error!");
+        THROW_ARG_ERROR("Video loading error!");
     }
 
     // 获取视频信息
-    int frame_width = static_cast<int>(video.get(CAP_PROP_FRAME_WIDTH));
-    int frame_height = static_cast<int>(video.get(CAP_PROP_FRAME_HEIGHT));
-    int frame_count = static_cast<int>(video.get(CAP_PROP_FRAME_COUNT));
-    cout << "Video Info: " << endl;
-    cout << "  frame width: " << frame_width << endl;
-    cout << "  frame height: " << frame_height << endl;
-    cout << "  frame count: " << frame_count << endl;
+    int frame_width = static_cast<int>(video.get(cv::CAP_PROP_FRAME_WIDTH));
+    int frame_height = static_cast<int>(video.get(cv::CAP_PROP_FRAME_HEIGHT));
+    int frame_count = static_cast<int>(video.get(cv::CAP_PROP_FRAME_COUNT));
+    std::cout << "Video Info: " << std::endl;
+    std::cout << "  frame width: " << frame_width << std::endl;
+    std::cout << "  frame height: " << frame_height << std::endl;
+    std::cout << "  frame count: " << frame_count << std::endl;
 
     // 遍历帧
     for (int i = 0; i < frame_count; i++) {
-        Mat frame;
+        cv::Mat frame;
         video >> frame;
         // ...
     }
-}
-
-void getAndPrintTime() {
-    // 获取当前时间点
-    auto now = std::chrono::system_clock::now();
-
-    // 转换为时间点自 1970-01-01 00:00:00 UTC 起经过的时间
-    auto duration = now.time_since_epoch();
-
-    // 转换为秒和微秒
-    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(duration)
-                        - std::chrono::duration_cast<std::chrono::microseconds>(seconds);
-
-    // 将时间点转换为 time_t 以便进行时间格式化
-    std::time_t time_t_seconds = std::chrono::system_clock::to_time_t(now);
-
-    // 格式化输出时间戳
-    std::tm* tm_ptr = std::localtime(&time_t_seconds);
-    std::cout << std::put_time(tm_ptr, "%Y-%m-%d %H:%M:%S") << '.'
-              << std::setfill('0') << std::setw(6) << microseconds.count() << std::endl;
 }

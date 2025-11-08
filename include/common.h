@@ -10,11 +10,9 @@
 #include <algorithm>
 #include <numeric>
 
-
-using namespace std;
-using namespace cv;
-
-const double math_pi = std::acos(-1.0);
+#include "FileEnumerator.hpp"
+#include "Stopwatch.hpp"
+#include "logger.hpp"
 
 
 /**
@@ -25,7 +23,7 @@ const double math_pi = std::acos(-1.0);
  * @param preview_unit 图像预览的单位元素个数
  * @return None
  */
-void printImageData(const Mat &image, Size shrink_size = Size(64, 64), int preview_unit = 3);
+void printImageData(const cv::Mat &image, cv::Size shrink_size = cv::Size(64, 64), int preview_unit = 3);
 
 /**
  * @brief 视频图像遍历
@@ -33,14 +31,7 @@ void printImageData(const Mat &image, Size shrink_size = Size(64, 64), int previ
  * @param video 视频对象
  * @return None
  */
-void videoTraverse(VideoCapture &video);
-
-/**
- * @brief 获取并打印时间戳
- *
- * @return None
- */
-void getAndPrintTime();
+void videoTraverse(cv::VideoCapture &video);
 
 
 #endif //DIP_OPENCV_COMMON_H

@@ -16,7 +16,7 @@
  * @param type 二值化操作类型，请参阅 #ThresholdTypes
  * @return None
  */
-void grayToBinary(Mat &src, Mat &dst, double thresh, double maxval, int type = THRESH_BINARY);
+void grayToBinary(const cv::Mat &src, cv::Mat &dst, double thresh, double maxval, int type = cv::THRESH_BINARY);
 
 /**
  * @brief 获取二值图像的最大值
@@ -24,7 +24,7 @@ void grayToBinary(Mat &src, Mat &dst, double thresh, double maxval, int type = T
  * @param src 输入图像；type: CV_8UC1，二值图
  * @return maxval
  */
-uchar getBinaryMaxval(Mat &src);
+uchar getBinaryMaxval(const cv::Mat &src);
 
 /**
  * @brief 二值反转
@@ -33,10 +33,10 @@ uchar getBinaryMaxval(Mat &src);
  * @param dst 输出图像
  * @return None
  */
-void binaryInvert(Mat &src, Mat &dst);
+void binaryInvert(const cv::Mat &src, cv::Mat &dst);
 
 // 构建（形态学）结构元
-// OpenCV Mat getStructuringElement(int shape, Size ksize, Point anchor = Point(-1,-1));
+// OpenCV cv::Mat getStructuringElement(int shape, cv::Size ksize, cv::Point anchor = cv::Point(-1,-1));
 
 /**
  * @brief 形态学腐蚀
@@ -48,7 +48,7 @@ void binaryInvert(Mat &src, Mat &dst);
  * @param kernel 结构元；可以使用 #getStructuringElement 创建
  * @return None
  */
-void morphologyErode(Mat &src, Mat &dst, const Mat &kernel);
+void morphologyErode(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);
 
 /**
  * @brief 形态学膨胀
@@ -60,7 +60,7 @@ void morphologyErode(Mat &src, Mat &dst, const Mat &kernel);
  * @param kernel 结构元；可以使用 #getStructuringElement 创建
  * @return None
  */
-void morphologyDilate(Mat &src, Mat &dst, const Mat &kernel);
+void morphologyDilate(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);
 
 /**
  * @brief 形态学开运算
@@ -72,7 +72,7 @@ void morphologyDilate(Mat &src, Mat &dst, const Mat &kernel);
  * @param kernel 结构元；可以使用 #getStructuringElement 创建
  * @return None
  */
-void morphologyOpen(Mat &src, Mat &dst, const Mat &kernel);
+void morphologyOpen(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);
 
 /**
  * @brief 形态学闭运算
@@ -84,7 +84,7 @@ void morphologyOpen(Mat &src, Mat &dst, const Mat &kernel);
  * @param kernel 结构元；可以使用 #getStructuringElement 创建
  * @return None
  */
-void morphologyClose(Mat &src, Mat &dst, const Mat &kernel);
+void morphologyClose(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);
 
 /**
  * @brief 形态学击中击不中变换
@@ -97,7 +97,7 @@ void morphologyClose(Mat &src, Mat &dst, const Mat &kernel);
  * @param back_kernel 背景结构元（击不中）；可以使用 #getStructuringElement 创建
  * @return None
  */
-void morphologyHMT(Mat &src, Mat &dst, const Mat &fore_kernel, const Mat &back_kernel);
+void morphologyHMT(const cv::Mat &src, cv::Mat &dst, const cv::Mat &fore_kernel, const cv::Mat &back_kernel);
 
 /**
  * @brief 形态学梯度
@@ -109,7 +109,7 @@ void morphologyHMT(Mat &src, Mat &dst, const Mat &fore_kernel, const Mat &back_k
  * @param kernel 结构元；可以使用 #getStructuringElement 创建
  * @return None
  */
-void morphologyGradient(Mat &src, Mat &dst, const Mat &kernel);
+void morphologyGradient(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);
 
 /**
  * @brief 形态学顶帽变换
@@ -121,7 +121,7 @@ void morphologyGradient(Mat &src, Mat &dst, const Mat &kernel);
  * @param kernel 结构元；可以使用 #getStructuringElement 创建
  * @return None
  */
-void morphologyTophat(Mat &src, Mat &dst, const Mat &kernel);
+void morphologyTophat(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);
 
 /**
  * @brief 形态学底帽变换
@@ -133,7 +133,7 @@ void morphologyTophat(Mat &src, Mat &dst, const Mat &kernel);
  * @param kernel 结构元；可以使用 #getStructuringElement 创建
  * @return None
  */
-void morphologyBlackhat(Mat &src, Mat &dst, const Mat &kernel);
+void morphologyBlackhat(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);
 
 /**
  * @brief 边界提取
@@ -143,7 +143,7 @@ void morphologyBlackhat(Mat &src, Mat &dst, const Mat &kernel);
  * @param size 结构元尺寸；通常取决于所需的边界尺寸
  * @return None
  */
-void boundaryExtract(Mat &src, Mat &dst, int size);
+void boundaryExtract(const cv::Mat &src, cv::Mat &dst, int size);
 
 /**
  * @brief 孔洞填充
@@ -153,7 +153,7 @@ void boundaryExtract(Mat &src, Mat &dst, int size);
  * @param start 孔洞起始点图像；type: CV_8UC1，二值图
  * @return None
  */
-void holeFill(Mat &src, Mat &dst, Mat &start);
+void holeFill(const cv::Mat &src, cv::Mat &dst, const cv::Mat &start);
 
 /**
  * @brief 提取连通分量
@@ -162,14 +162,14 @@ void holeFill(Mat &src, Mat &dst, Mat &start);
  * @param dst 输出图像
  * @return Number of connected
  */
-int extractConnected(Mat &src, Mat &dst);
+int extractConnected(const cv::Mat &src, cv::Mat &dst);
 
 // 连通域提取
-// OpenCV int connectedComponents(InputArray image, OutputArray labels, int connectivity, int ltype, int ccltype);
+// OpenCV int connectedComponents(cv::InputArray image, cv::OutputArray labels, int connectivity, int ltype, int ccltype);
 
 // 连通域提取（详细）
-// OpenCV int connectedComponentsWithStats(InputArray image, OutputArray labels, OutputArray stats,
-//                                         OutputArray centroids, int connectivity, int ltype, int ccltype);
+// OpenCV int connectedComponentsWithStats(cv::InputArray image, cv::OutputArray labels, cv::OutputArray stats,
+//                                         cv::OutputArray centroids, int connectivity, int ltype, int ccltype);
 
 // 凸壳、细化、粗化、骨架、裁剪
 
@@ -181,7 +181,7 @@ int extractConnected(Mat &src, Mat &dst);
  * @param dst 输出图像
  * @return None
  */
-void erodeReconstruct(Mat &src, const Mat &tmpl, Mat &dst);
+void erodeReconstruct(const cv::Mat &src, const cv::Mat &tmpl, cv::Mat &dst);
 
 /**
  * @brief 膨胀形态学重建
@@ -191,7 +191,7 @@ void erodeReconstruct(Mat &src, const Mat &tmpl, Mat &dst);
  * @param dst 输出图像
  * @return None
  */
-void dilateReconstruct(Mat &src, const Mat &tmpl, Mat &dst);
+void dilateReconstruct(const cv::Mat &src, const cv::Mat &tmpl, cv::Mat &dst);
 
 /**
  * @brief 开运算形态学重建
@@ -202,7 +202,7 @@ void dilateReconstruct(Mat &src, const Mat &tmpl, Mat &dst);
  * @param erode_times 腐蚀次数
  * @return None
  */
-void openReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_times = 1);
+void openReconstruct(const cv::Mat &src, cv::Mat &dst, const cv::Mat &erode_kernel, int erode_times = 1);
 
 /**
  * @brief 闭运算形态学重建
@@ -213,7 +213,7 @@ void openReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_time
  * @param dilate_times 膨胀次数
  * @return None
  */
-void closeReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_times = 1);
+void closeReconstruct(const cv::Mat &src, cv::Mat &dst, const cv::Mat &dilate_kernel, int dilate_times = 1);
 
 /**
  * @brief 顶帽形态学重建
@@ -224,7 +224,7 @@ void closeReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_t
  * @param erode_times 腐蚀次数
  * @return None
  */
-void tophatReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_times = 1);
+void tophatReconstruct(const cv::Mat &src, cv::Mat &dst, const cv::Mat &erode_kernel, int erode_times = 1);
 
 /**
  * @brief 底帽形态学重建
@@ -235,7 +235,7 @@ void tophatReconstruct(Mat &src, Mat &dst, const Mat &erode_kernel, int erode_ti
  * @param dilate_times 膨胀次数
  * @return None
  */
-void blackhatReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilate_times = 1);
+void blackhatReconstruct(const cv::Mat &src, cv::Mat &dst, const cv::Mat &dilate_kernel, int dilate_times = 1);
 
 /**
  * @brief 孔洞填充（自动版）
@@ -244,7 +244,7 @@ void blackhatReconstruct(Mat &src, Mat &dst, const Mat &dilate_kernel, int dilat
  * @param dst 输出图像
  * @return None
  */
-void holeFill(Mat &src, Mat &dst);
+void holeFill(const cv::Mat &src, cv::Mat &dst);
 
 /**
  * @brief 边界清除
@@ -253,7 +253,7 @@ void holeFill(Mat &src, Mat &dst);
  * @param dst 输出图像
  * @return None
  */
-void borderClear(Mat &src, Mat &dst);
+void borderClear(const cv::Mat &src, cv::Mat &dst);
 
 
 #endif //DIP_OPENCV_MORPHOLOGICAL_H

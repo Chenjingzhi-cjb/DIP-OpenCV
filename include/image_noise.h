@@ -2,13 +2,12 @@
 #define DIP_OPENCV_IMAGE_NOISE_H
 
 #include "common.h"
-#include "gray_transform.h"
 
 
 /**
  * @brief 添加高斯噪声
  *
- * 调用 rng.fill(RNG::NORMAL)
+ * 调用 cv::RNG::fill(cv::RNG::NORMAL)
  *
  * @param src 输入图像
  * @param dst 输出图像
@@ -16,12 +15,12 @@
  * @param sigma 高斯分布的标准差
  * @return None
  */
-void addNoiseGauss(Mat &src, Mat &dst, int mean, int sigma);
+void addNoiseGauss(const cv::Mat &src, cv::Mat &dst, int mean, int sigma);
 
 /**
  * @brief 添加平均噪声
  *
- * 调用 rng.fill(RNG::UNIFORM)
+ * 调用 cv::RNG::fill(cv::RNG::UNIFORM)
  *
  * @param src 输入图像
  * @param dst 输出图像
@@ -29,7 +28,7 @@ void addNoiseGauss(Mat &src, Mat &dst, int mean, int sigma);
  * @param upper 平均分布的上限（开区间）
  * @return None
  */
-void addNoiseMean(Mat &src, Mat &dst, int lower, int upper);
+void addNoiseMean(const cv::Mat &src, cv::Mat &dst, int lower, int upper);
 
 /**
  * @brief 添加瑞利噪声
@@ -39,7 +38,7 @@ void addNoiseMean(Mat &src, Mat &dst, int lower, int upper);
  * @param sigma 瑞利分布的标准差
  * @return None
  */
-void addNoiseRayleigh(Mat &src, Mat &dst, double sigma);
+void addNoiseRayleigh(const cv::Mat &src, cv::Mat &dst, double sigma);
 
 /**
  * @brief 添加伽马(爱尔兰）噪声
@@ -51,7 +50,7 @@ void addNoiseRayleigh(Mat &src, Mat &dst, double sigma);
  * @param beta 伽马分布的形状参数
  * @return None
  */
-void addNoiseGamma(Mat &src, Mat &dst, double sigma, double alpha, double beta);
+void addNoiseGamma(const cv::Mat &src, cv::Mat &dst, double sigma, double alpha, double beta);
 
 /**
  * @brief 添加指数噪声
@@ -61,7 +60,7 @@ void addNoiseGamma(Mat &src, Mat &dst, double sigma, double alpha, double beta);
  * @param lambda 指数分布的速率参数
  * @return None
  */
-void addNoiseExp(Mat &src, Mat &dst, double lambda);
+void addNoiseExp(const cv::Mat &src, cv::Mat &dst, double lambda);
 
 /**
  * @brief 添加椒盐(冲激)噪声
@@ -77,7 +76,8 @@ void addNoiseExp(Mat &src, Mat &dst, double lambda);
  * @param pepper_value 椒噪声值（即黑色噪声）；默认 depth() 为 CV_8U，则 pepper_value 为 0
  * @return None
  */
-void addNoiseSaltPepper(Mat &src, Mat &dst, double noise_level, int type = 0, double salt_value = 255, double pepper_value = 0);
+void addNoiseSaltPepper(const cv::Mat &src, cv::Mat &dst, double noise_level, int type = 0, double salt_value = 255,
+                        double pepper_value = 0);
 
 
 #endif //DIP_OPENCV_IMAGE_NOISE_H
