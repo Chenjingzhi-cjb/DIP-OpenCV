@@ -36,7 +36,7 @@ uchar getBinaryMaxval(const cv::Mat &src);
 void binaryInvert(const cv::Mat &src, cv::Mat &dst);
 
 // 构建（形态学）结构元
-// OpenCV cv::Mat getStructuringElement(int shape, cv::Size ksize, cv::Point anchor = cv::Point(-1,-1));
+// OpenCV cv::Mat cv::getStructuringElement(int shape, cv::Size ksize, cv::Point anchor = cv::Point(-1,-1));
 
 /**
  * @brief 形态学腐蚀
@@ -165,11 +165,11 @@ void holeFill(const cv::Mat &src, cv::Mat &dst, const cv::Mat &start);
 int extractConnected(const cv::Mat &src, cv::Mat &dst);
 
 // 连通域提取
-// OpenCV int connectedComponents(cv::InputArray image, cv::OutputArray labels, int connectivity, int ltype, int ccltype);
+// OpenCV int cv::connectedComponents(cv::InputArray image, cv::OutputArray labels, int connectivity, int ltype, int ccltype);
 
 // 连通域提取（详细）
-// OpenCV int connectedComponentsWithStats(cv::InputArray image, cv::OutputArray labels, cv::OutputArray stats,
-//                                         cv::OutputArray centroids, int connectivity, int ltype, int ccltype);
+// OpenCV int cv::connectedComponentsWithStats(cv::InputArray image, cv::OutputArray labels, cv::OutputArray stats,
+//                                             cv::OutputArray centroids, int connectivity, int ltype, int ccltype);
 
 // 凸壳、细化、粗化、骨架、裁剪
 

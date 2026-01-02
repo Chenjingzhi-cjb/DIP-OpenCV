@@ -212,3 +212,37 @@ void globalThresholdEdgeOptExample() {
     cv::imshow("image22", image22);
     cv::waitKey(0);
 }
+
+void adaptiveThresholdProcessDocumentExample() {
+    // ------------ text-spotshade.tif ------------
+    cv::Mat image1 = cv::imread(R"(../image/text-spotshade.tif)", 0);
+
+    cv::Mat image1_moving;
+    adaptiveThresholdMovingMean(image1, image1_moving, 20, 0.5);
+
+    cv::Mat image1_mean;
+    cv::adaptiveThreshold(image1, image1_mean, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 9, 3);
+
+    cv::Mat image1_gauss;
+    cv::adaptiveThreshold(image1, image1_gauss, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 9, 3);
+
+    cv::namedWindow("image1", cv::WINDOW_AUTOSIZE);
+    cv::imshow("image1", image1_moving);
+    cv::waitKey(0);
+
+    // ------------ text-sineshade.tif ------------
+    cv::Mat image2 = cv::imread(R"(../image/text-sineshade.tif)", 0);
+
+    cv::Mat image2_moving;
+    adaptiveThresholdMovingMean(image2, image2_moving, 20, 0.5);
+
+    cv::Mat image2_mean;
+    cv::adaptiveThreshold(image2, image2_mean, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 9, 3);
+
+    cv::Mat image2_gauss;
+    cv::adaptiveThreshold(image2, image2_gauss, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 9, 3);
+
+    cv::namedWindow("image2", cv::WINDOW_AUTOSIZE);
+    cv::imshow("image2", image2_moving);
+    cv::waitKey(0);
+}

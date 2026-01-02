@@ -213,5 +213,36 @@ std::pair<int, int> calcGlobalDualThresholdOtus(const cv::Mat &src, const cv::Ma
  */
 void thresholdThreeClass(const cv::Mat &src, cv::Mat &dst, int t1, int t2);
 
+/**
+ * @brief 基于局部图像性质的可变阈值处理
+ *
+ * threshold = std_c * std + mean_c * mean
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param ksize 计算邻域尺寸；必须为正奇数
+ * @param std_c 标准差系数（非负数）
+ * @param mean_c 均值系数（非负数）
+ * @return None
+ */
+void adaptiveThresholdLocalProp(const cv::Mat &src, cv::Mat &dst, const cv::Size &ksize, double std_c, double mean_c);
+
+/**
+ * @brief 基于移动平均的可变阈值处理
+ *
+ * @param src 输入图像；type: CV_8UC1
+ * @param dst 输出图像
+ * @param window_size 移动平均窗口尺寸
+ * @param coefficient 阈值系数（正数）；threshold = c * mean
+ * @return None
+ */
+void adaptiveThresholdMovingMean(const cv::Mat &src, cv::Mat &dst, int window_size, double coefficient);
+
+// 自适应均值阈值处理
+// OpenCV void adaptiveThreshold(src, dst, maxValue, cv::ADAPTIVE_THRESH_MEAN_C, thresholdType, blockSize, C);
+
+// 自适应高斯阈值处理
+// OpenCV void adaptiveThreshold(src, dst, maxValue, cv::ADAPTIVE_THRESH_GAUSSIAN_C, thresholdType, blockSize, C);
+
 
 #endif //DIP_OPENCV_IMAGE_SEGMENTATION_H

@@ -100,5 +100,12 @@ void morphFlattenBackgroundExample();  // TODO: 使用 msvc 编译器编译后�
  */
 void globalThresholdEdgeOptExample();
 
+/**
+ * @brief 使用自适应阈值处理文档示例
+ *
+ * @return None
+ */
+void adaptiveThresholdProcessDocumentExample();
+
 
 #endif //DIP_OPENCV_EXAMPLE_H

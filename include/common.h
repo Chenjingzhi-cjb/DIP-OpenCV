@@ -7,6 +7,7 @@
 #include <cmath>
 #include <utility>
 #include <vector>
+#include <deque>
 #include <algorithm>
 #include <numeric>
 

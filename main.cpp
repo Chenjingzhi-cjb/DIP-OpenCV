@@ -4,7 +4,7 @@
 int main() {
     Logger::instance().init();
 
-    globalThresholdEdgeOptExample();
+    adaptiveThresholdProcessDocumentExample();
 
     return 0;
 }

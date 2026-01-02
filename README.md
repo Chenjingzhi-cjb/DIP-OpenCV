@@ -237,7 +237,7 @@ uchar getBinaryMaxval(const cv::Mat &src);  // 获取二值图像的最大值
 
 void binaryInvert(const cv::Mat &src, cv::Mat &dst);  // 二值反转
 
-// OpenCV cv::Mat getStructuringElement(int shape, cv::Size ksize, cv::Point anchor = cv::Point(-1,-1));  构建（形态学）结构元
+// OpenCV cv::Mat cv::getStructuringElement(int shape, cv::Size ksize, cv::Point anchor = cv::Point(-1,-1));  构建（形态学）结构元
 
 void morphologyErode(const cv::Mat &src, cv::Mat &dst, const cv::Mat &kernel);  // 形态学腐蚀
 
@@ -330,11 +330,21 @@ int calcGlobalThresholdEdgeOpt(const cv::Mat &src, int gradient_mode = 1, double
 pair<int, int> calcGlobalDualThresholdOtus(const cv::Mat &src, const cv::Mat &mask = cv::Mat(), double *eta = nullptr);  // 基于大津法的全局（灰度分割）双阈值处理
 
 void thresholdThreeClass(const cv::Mat &src, cv::Mat &dst, int t1, int t2);  // 使用双阈值分割图像为三类
+
+void adaptiveThresholdLocalProp(const cv::Mat &src, cv::Mat &dst, const cv::Size &ksize, double std_c, double mean_c);  // 基于局部图像性质的可变阈值处理
+
+void adaptiveThresholdMovingMean(const cv::Mat &src, cv::Mat &dst, int window_size, double coefficient);  // 基于移动平均的可变阈值处理
+
+// OpenCV void adaptiveThreshold(src, dst, maxValue, cv::ADAPTIVE_THRESH_MEAN_C, thresholdType, blockSize, C);  自适应均值阈值处理
+
+// OpenCV void adaptiveThreshold(src, dst, maxValue, cv::ADAPTIVE_THRESH_GAUSSIAN_C, thresholdType, blockSize, C);  自适应高斯阈值处理
 ```
 
 - **example.h**
 
 ```cpp
 void globalThresholdEdgeOptExample();  // 基于边缘改进全局阈值处理示例
+
+void adaptiveThresholdProcessDocumentExample();  // 使用自适应阈值处理文档示例
 ```
 

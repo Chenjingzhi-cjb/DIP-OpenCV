@@ -560,3 +560,105 @@ void thresholdThreeClass(const cv::Mat &src, cv::Mat &dst, int t1, int t2) {
 
     temp.copyTo(dst);
 }
+
+void adaptiveThresholdLocalProp(const cv::Mat &src, cv::Mat &dst, const cv::Size &ksize, double std_c, double mean_c) {
+    if (src.empty()) {
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
+    }
+    if ((ksize.width <= 0) || (ksize.width % 2 == 0) || (ksize.height <= 0) || (ksize.height % 2 == 0)) {
+        THROW_ARG_ERROR("Invalid `ksize`. You should make sure ksize is a positive odd number.");
+    }
+    if (std_c < 0) {
+        THROW_ARG_ERROR("Invalid `std_c`: {}. You should make sure `std_c >= 0`.", std_c);
+    }
+    if (mean_c < 0) {
+        THROW_ARG_ERROR("Invalid `mean_c`: {}. You should make sure `mean_c >= 0`.", mean_c);
+    }
+
+    cv::Mat mean_mat, std_mat;
+
+    // 使用 blur 计算均值
+    cv::blur(src, mean_mat, ksize);
+
+    // X^2
+    cv::Mat src_float, src_sq;
+    src.convertTo(src_float, CV_32F);
+    cv::multiply(src_float, src_float, src_sq);
+
+    // E[X^2]
+    cv::Mat sqMean;
+    cv::blur(src_sq, sqMean, ksize);
+
+    // E[X]^2
+    cv::Mat meanSq;
+    cv::multiply(mean_mat, mean_mat, meanSq);
+
+    // std = sqrt(E[X^2] - E[X]^2)
+    cv::subtract(sqMean, meanSq, std_mat);
+    cv::sqrt(std_mat, std_mat);
+
+    // threshold = std_c * std_mat + mean_c * mean_mat
+    cv::Mat threshold;
+    cv::addWeighted(std_mat, std_c, mean_mat, mean_c, 0, threshold);
+    cv::compare(src, threshold, dst, cv::CMP_GT);
+}
+
+void adaptiveThresholdMovingMean(const cv::Mat &src, cv::Mat &dst, int window_size, double coefficient) {
+    if (src.empty()) {
+        THROW_ARG_ERROR("Input src image is empty.");
+    }
+    if (src.type() != CV_8UC1) {
+        THROW_ARG_ERROR("Input src image type must be CV_8UC1.");
+    }
+    if (window_size <= 0) {
+        THROW_ARG_ERROR("Invalid `window_size`: {}. You should make sure `window_size > 0`.", window_size);
+    }
+    if (coefficient <= 0) {
+        THROW_ARG_ERROR("Invalid `coefficient`: {}. You should make sure `coefficient > 0`.", coefficient);
+    }
+
+    const int rows = src.rows;
+    const int cols = src.cols;
+    const int total = rows * cols;
+
+    if (window_size > total) return;  // fxxk you
+
+    cv::Mat temp(rows, cols, CV_8UC1, cv::Scalar(0));
+    std::deque<int> window;
+
+    long long sum = 0;
+    int idx = 0;
+    for (int r = 0; r < rows; ++r) {
+        // 蛇形遍历（Z 字形遍历）
+        bool leftToRight = (r % 2 == 0);
+
+        int c_start = leftToRight ? 0 : cols - 1;
+        int c_end = leftToRight ? cols : -1;
+        int c_step = leftToRight ? 1 : -1;
+
+        for (int c = c_start; c != c_end; c += c_step) {
+            uchar pixel = src.at<uchar>(r, c);
+
+            // 更新滑动窗口
+            window.push_back(pixel);
+            sum += pixel;
+            if ((int) window.size() > window_size) {
+                sum -= window.front();
+                window.pop_front();
+            }
+
+            // 计算阈值
+            double threshold = coefficient * static_cast<double>(sum) / (double) window.size();
+
+            // 二值化
+            temp.at<uchar>(r, c) = (pixel > threshold) ? 255 : 0;
+
+            ++idx;
+        }
+    }
+
+    temp.copyTo(dst);
+}
